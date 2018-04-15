@@ -1,0 +1,66 @@
+<html>
+	<head>
+		<link rel="stylesheet" href="scripts/jquery-ui/jquery-ui.css">
+		<script type="text/javascript" src="scripts/jquery-3.3.1.min.js"></script>
+		<script type="text/javascript" src="scripts/jquery-ui/jquery-ui.min.js"></script>
+		<script type="text/javascript">
+		
+			$(function(){
+			
+				$("#author").autocomplete({
+					source: "http://localhost:8000/authors"
+				});
+				
+				$("#recommend").click(function(){
+					console.log("click");
+					$.ajax({
+						url:"http://localhost:8000/author",
+						dataType:"json",
+						data:{"author":$("#author").val()}
+					}).done(function(data){
+						var cont = $("#results").empty();
+						console.log("done: " + Object.keys(data["conference_name"]).length);
+						if (Object.keys(data["conference_name"]).length==0) {
+							console.log("no results");
+							cont.text("No results.");
+						} else {
+							for (var i in data["conference_name"]) {
+								cont.append(
+									$("<h1>").text(data["conference_name"][i]),
+									$("<span>").text("confidence: " + data["count"][i]),
+								);
+							}
+						}
+					})
+				});
+
+				/*
+				$.ajax({
+					url:"http://localhost:8000/authors",
+					dataType:"json"
+				}).done(function(data) {
+					console.log(data);
+					authors = data;
+					
+					$("#author").autocomplete({
+						source: authors
+					});
+				});
+				*/
+			
+			});
+		
+		</script>
+	</head>
+
+	<body>
+		
+		<div class="ui-widget">
+			<label for="author">Author: </label>
+			<input id="author">
+		</div>
+		<button type="button" id="recommend">Recommend</button>
+		<div id="results"></div>
+	</body>
+
+</html>
