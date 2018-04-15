@@ -4,6 +4,7 @@ Created on Tue Apr 10 15:38:11 2018
 
 @author: Steff
 """
+
 """
 
 BookChapter
@@ -17,7 +18,6 @@ Book
 
 """
 
-import pprint
 import pickle
 import os.path
 import re
@@ -271,7 +271,7 @@ class FileParser:
                  
                  
 
-
+"""
 ### contribution attributes
 nt_family_name = "<http://scigraph.springernature.com/ontologies/core/publishedFamilyName>"
 nt_given_name = "<http://scigraph.springernature.com/ontologies/core/publishedGivenName>"
@@ -286,9 +286,8 @@ attributes_contribution = [
         nt_corresponding,
         nt_order
 ]
-
+"""
 
 
 
 parser = FileParser()
-testme = parser.getData("conferences#name")
