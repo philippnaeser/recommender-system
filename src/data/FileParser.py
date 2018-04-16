@@ -23,15 +23,27 @@ import os.path
 import re
 import time
 
-### attributes
-nt_has_conference = "<http://scigraph.springernature.com/ontologies/core/hasConference>"
-nt_has_book = "<http://scigraph.springernature.com/ontologies/core/hasBook>"
-nt_has_contribution = "<http://scigraph.springernature.com/ontologies/core/hasContribution>"
-nt_publishedname = "<http://scigraph.springernature.com/ontologies/core/publishedName>"
+### shared attributes
 nt_name = "<http://scigraph.springernature.com/ontologies/core/name>"
+
+### book attributes
+nt_has_conference = "<http://scigraph.springernature.com/ontologies/core/hasConference>"
+
+### chapter attributes
+nt_has_book = "<http://scigraph.springernature.com/ontologies/core/hasBook>"
+nt_has_book_edition = "<http://scigraph.springernature.com/ontologies/core/hasBookEdition>"
+nt_has_contribution = "<http://scigraph.springernature.com/ontologies/core/hasContribution>"
 nt_abstract = "<http://scigraph.springernature.com/ontologies/core/abstract>"
 nt_title = "<http://scigraph.springernature.com/ontologies/core/title>"
 nt_language = "<http://scigraph.springernature.com/ontologies/core/language>"
+
+## bookedition attributes
+nt_has_productmarketcode = "<http://scigraph.springernature.com/ontologies/core/hasProductMarketCode>"
+
+## contributions attributes
+nt_publishedname = "<http://scigraph.springernature.com/ontologies/core/publishedName>"
+nt_iscorresponding = "<http://scigraph.springernature.com/ontologies/core/isCorresponding>"
+nt_order = "<http://scigraph.springernature.com/ontologies/core/order>"
 
 ## conference attributes
 nt_acronym = "<http://scigraph.springernature.com/ontologies/core/acronym>"
@@ -63,6 +75,20 @@ class FileParser:
                     "filename":self.path_raw + "springernature-scigraph-books.cc-by.2017-11-07.nt",
                     "processLine":"processLineBooksConferences",
                     "persistentFile":self.path_persistent + "books_conferences.pkl",
+                    "persistentVariable":{}
+            },
+            ### bookeditions
+            "bookeditions":{
+                    "filename":self.path_raw + "springernature-scigraph-books.cc-by.2017-11-07.nt",
+                    "processLine":"processLineBookEditions",
+                    "persistentFile":self.path_persistent + "bookeditions.pkl",
+                    "persistentVariable":[]
+            },
+            ### bookeditions#marketcodes
+            "bookeditions#marketcodes":{
+                    "filename":self.path_raw + "springernature-scigraph-books.cc-by.2017-11-07.nt",
+                    "processLine":"processLineBookEditionsAttributeMarketCodes",
+                    "persistentFile":self.path_persistent + "bookeditions#marketcodes.pkl",
                     "persistentVariable":{}
             },
             "conferences":{
@@ -174,6 +200,14 @@ class FileParser:
                 "persistentFile":self.path_persistent + "chapters_books_" + year + ".pkl",
                 "persistentVariable":{}
             }
+            ### chapters_bookeditions
+            self.processes["chapters_bookeditions_" + year] = {
+                "filename":self.path_raw + "springernature-scigraph-book-chapters-" + year + ".cc-by.2017-11-07.nt",
+                "processLine":"processLineChaptersBookEditions",
+                "persistentFile":self.path_persistent + "chapters_bookeditions_" + year + ".pkl",
+                "persistentVariable":{},
+                "parameters":"chapters_" + year
+            }
             ### contributions
             self.processes["contributions_" + year] = {
                 "filename":self.path_raw + "springernature-scigraph-book-chapters-" + year + ".cc-by.2017-11-07.nt",
@@ -187,6 +221,22 @@ class FileParser:
                 "filename":self.path_raw + "springernature-scigraph-book-chapters-" + year + ".cc-by.2017-11-07.nt",
                 "processLine":"processLineContributionsAttributePublishedName",
                 "persistentFile":self.path_persistent + "contributions_" + year + "#publishedName.pkl",
+                "persistentVariable":{},
+                "parameters":"contributions_" + year
+            }
+            ### contributions#isCorresponding
+            self.processes["contributions_" + year + "#isCorresponding"] = {
+                "filename":self.path_raw + "springernature-scigraph-book-chapters-" + year + ".cc-by.2017-11-07.nt",
+                "processLine":"processLineContributionsAttributeIsCorresponding",
+                "persistentFile":self.path_persistent + "contributions_" + year + "#isCorresponding.pkl",
+                "persistentVariable":{},
+                "parameters":"contributions_" + year
+            }
+            ### contributions#order
+            self.processes["contributions_" + year + "#order"] = {
+                "filename":self.path_raw + "springernature-scigraph-book-chapters-" + year + ".cc-by.2017-11-07.nt",
+                "processLine":"processLineContributionsAttributeOrder",
+                "persistentFile":self.path_persistent + "contributions_" + year + "#order.pkl",
                 "persistentVariable":{},
                 "parameters":"contributions_" + year
             }
@@ -417,6 +467,31 @@ class FileParser:
             if (line[2] in self.getData("books")):
                 v[line[0]] = line[2]
                 
+    def processLineChaptersBookEditions(self,line,v,parameters):
+        line = line.split()
+        
+        if (line[1] == nt_has_book_edition):
+            if (line[0] in self.getData(parameters)):
+                v[line[0]] = line[2]
+                                
+    def processLineBookEditions(self,line,v,parameters):
+        line = line.split()
+        
+        if (line[1] == nt_has_book_edition):
+            if (line[0] in self.getData("books")):
+                if line[2] not in v:
+                    v.append(line[2])
+                    
+    def processLineBookEditionsAttributeMarketCodes(self,line,v,parameters):
+        line = line.split()
+        
+        if (line[1] == nt_has_productmarketcode):
+            if (line[0] in self.getData("bookeditions")):
+                if line[0] not in v:
+                    v[line[0]] = []
+                if line[2] not in v[line[0]]:
+                    v[line[0]].append(line[2])
+   
     def processLineContributions(self,line,v,parameters):
         line = line.split()
         
@@ -436,6 +511,20 @@ class FileParser:
         line = re.findall(self.regex, line)
         
         if (line[1] == nt_publishedname):
+            if (line[0] in self.getData(parameters)):
+                v[line[0]] = line[2]
+
+    def processLineContributionsAttributeIsCorresponding(self,line,v,parameters):
+        line = re.findall(self.regex, line)
+        
+        if (line[1] == nt_iscorresponding):
+            if (line[0] in self.getData(parameters)):
+                v[line[0]] = line[2]
+                
+    def processLineContributionsAttributeOrder(self,line,v,parameters):
+        line = re.findall(self.regex, line)
+        
+        if (line[1] == nt_order):
             if (line[0] in self.getData(parameters)):
                 v[line[0]] = line[2]
                 
@@ -508,3 +597,19 @@ parser = FileParser()
 #parser.getData("conferences_conferenceseries")               
 #parser.getData("conferenceseries")
 #parser.getData("conferenceseries#name")
+
+#parser.getData("contributions_2014#isCorresponding")
+#parser.getData("contributions_2015#isCorresponding")
+#parser.getData("contributions_2016#isCorresponding")
+#parser.getData("contributions_2017#isCorresponding")
+#parser.getData("contributions_2014#order")
+#parser.getData("contributions_2015#order")
+#parser.getData("contributions_2016#order")
+#parser.getData("contributions_2017#order")
+
+#parser.getData("chapters_bookeditions_2014")
+#parser.getData("chapters_bookeditions_2015")
+#parser.getData("chapters_bookeditions_2016")
+#parser.getData("chapters_bookeditions_2017")
+#parser.getData("bookeditions")
+#parser.getData("bookeditions#marketcodes")
