@@ -160,7 +160,7 @@ class FileParser:
         }
         
         # initialize processes of yearly data
-        for year in range(2014,2018):
+        for year in range(2011,2018):
             year = str(year)
             ### chapters
             self.processes["chapters_" + year] = {
@@ -613,3 +613,15 @@ parser = FileParser()
 #parser.getData("chapters_bookeditions_2017")
 #parser.getData("bookeditions")
 #parser.getData("bookeditions#marketcodes")
+
+#parser.getData("chapters_2013")
+#parser.getData("chapters_books_2013")
+#parser.getData("chapters_bookeditions_2013")
+#parser.getData("chapters_2013#title")
+#parser.getData("chapters_2013#language")
+#parser.getData("chapters_2013#abstract")
+#parser.getData("contributions_2013")
+#parser.getData("contributions_2013#publishedName")
+#parser.getData("contributions_2013#isCorresponding")
+#parser.getData("contributions_2013#order")
+#parser.getData("contributions_chapters_2013")
