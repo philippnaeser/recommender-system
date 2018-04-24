@@ -7,6 +7,7 @@ Created on Tue Apr 24 13:08:06 2018
 
 from AbstractClasses import AbstractModel 
 import pandas as pd
+import numpy as np
 
 class BaselineModel(AbstractModel):
     
@@ -14,12 +15,79 @@ class BaselineModel(AbstractModel):
         #AbstractModel.__init__(self,data)
     
     def query_single(self,author):
-        return self.data[self.data["author_name"]==author].sort_values(by="count",ascending=False)
+        """
+        Queries the model and returns a list of recommendations.
         
+        Args:
+            author (str): The author name.
+        
+        Returns:
+            str[]: id of the conference
+            str[]: name of the conference
+            double[]: confidence scores
+        """
+        data = self.data[self.data["author_name"]==author].sort_values(by="count",ascending=False)
+        conference = list(data["conference_name"])
+        confidence = list(data["count"])
+        return [conference,confidence]
+   
+    def query_batch(self,batch):
+        """
+        Queries the model and returns a list of recommendations for each request.
+        
+        Args:
+            batch[str]: The list of author names.
+        
+        Returns:
+            A list of size 'len(batch)' which contains the recommendations for each item of the batch.
+            If author not found, the value is None.
+            
+            str[]: name of the conference
+            double[]: confidence scores
+        """
+        data = self.data[self.data["author_name"].isin(batch)]
+        
+        count = len(data)
+        checkpoint = int(count/20)
+        i = 0
+        recommendations = {}
+        for index, row in data.iterrows():
+            if (i%checkpoint)==0:
+                print("Batch querying: {}%".format(int(i/count*100)))
+            
+            author = row["author_name"]
+            conference = row["conference_name"]
+            value = row["count"]
+            
+            try:
+                recommendations[author][conference] = value
+            except KeyError:
+                recommendations[author] = {conference:value}
+                
+            i += 1
+        
+        
+        conference = list()
+        confidence = list()
+        for q in batch:
+            try:
+                conference.append(
+                        sorted(recommendations[q], key=recommendations[q].__getitem__, reverse=True)
+                )
+                confidence.append(
+                        sorted(recommendations[q].values(),reverse=True)
+                )
+            except KeyError:
+                conference.append(None)
+                confidence.append(None)
+        
+            
+        return [conference,confidence]
+    
     def train(self,data):
         """
         Set the data to be searched for by author name.
-        Needs to contain 'author_name', 'conference', 'conference_name' and 'count'.
+        Needs to contain 'author_name' and 'conference_name'.
         
         Args:
             data (pandas.DataFrame): the data used by the model.
@@ -27,13 +95,20 @@ class BaselineModel(AbstractModel):
         AbstractModel.train(self,data)
         
         #for check in ["author_name","conference","conference_name","count"]:
-        for check in ["author_name","conference_name","count"]:
+        for check in ["author_name","conference_name"]:
             if not check in data.columns:
                 raise IndexError("Column '{}' not contained in given DataFrame.".format(check))
         
-        self.data = data
+        data["count"] = pd.Series(np.ones(len(data)))
+        self.data = data[["author_name","conference_name","count"]].groupby(by=["author_name","conference_name"]).sum().reset_index()
+        #self.data.drop_duplicates(inplace=True)
         
-    def get_author_names(self,term):
+    def get_author_names(self,term="",count=10):
         authors = pd.Series(self.data["author_name"].unique())
-        authors = authors[authors.str.lower().str.startswith(term.lower())][:10]
+        
+        if count>0:
+            authors = authors[authors.str.lower().str.startswith(term.lower())][:count]
+        else:
+            authors = authors[authors.str.lower().str.startswith(term.lower())]
+        
         return authors

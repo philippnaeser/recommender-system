@@ -53,14 +53,10 @@ class AbstractModel:
             raise TypeError("argument 'data' needs to be of type pandas.DataFrame")
         
         pass
-    
-    ##########################################
-    def evaluate(self,evaluation,data):
-        return evaluation.evaluate(data)
 
 
 
 class AbstractEvaluation:
     
-    def evaluate(self,data):
+    def evaluate(self,recommendation,truth):
         return
