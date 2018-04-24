@@ -64,6 +64,10 @@ from RecallEvaluation import RecallEvaluation
 evaluation = RecallEvaluation()
 evaluation.evaluate(recommendation,truth)
 
+from FirstMatchEvaluation import FirstMatchEvaluation
+evaluation = FirstMatchEvaluation()
+evaluation.evaluate(recommendation,truth)
+
 # from ...Evaluation import ...Evaluation
 #evaluation = ...Evaluation()
 #evaluation.evaluate(recommendation,truth)
