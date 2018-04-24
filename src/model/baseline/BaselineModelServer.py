@@ -11,9 +11,13 @@ import pandas as pd
 import json
 import urllib
 import sys
+import os
 
 sys.path.insert(0, ".\..")
 import BaselineModel
+current_dir = os.getcwd()
+sys.path.insert(0, ".\..\..\data")
+from DataLoader import DataLoader
 
 class BaselineModelHTTPRequestHandler(BaseHTTPRequestHandler):
     
@@ -56,10 +60,11 @@ class BaselineModelHTTPRequestHandler(BaseHTTPRequestHandler):
             
             query = self.get_variable("author")
             
-            authors = self.model.query_single(query).to_json()
-            authors = bytearray(authors,"utf-8")
+            conferences = self.model.query_single(query)
+            conferences = json.dumps(conferences)
+            conferences = bytearray(conferences,"utf-8")
             
-            self.wfile.write(authors)
+            self.wfile.write(conferences)
             
         else:
             if (self.path == "/"):
@@ -98,11 +103,17 @@ print("Setting up server.")
 handler = BaselineModelHTTPRequestHandler
 httpd = HTTPServer(('localhost', 8000), handler)
 
-path = "..\\..\\..\\data\\processed\\"
-data = pd.read_csv(path + "baseline.model.csv")
+#path = "..\\..\\..\\data\\processed\\"
+#data = pd.read_csv(path + "baseline.model.csv")
+
+os.chdir(".\..\..\data")
+d = DataLoader()
+d.papers(["2013","2014","2015"]).contributions().conferences()
+os.chdir(current_dir)
+data_train = d.data
 
 model = BaselineModel.BaselineModel()
-model.train(data)
+model.train(data_train)
 
 print("Start serving.")
 httpd.serve_forever()

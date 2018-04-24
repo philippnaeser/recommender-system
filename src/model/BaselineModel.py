@@ -26,9 +26,13 @@ class BaselineModel(AbstractModel):
             str[]: name of the conference
             double[]: confidence scores
         """
+        if not isinstance(author,str):
+            raise TypeError("argument 'author' needs to be a string.")
+
         data = self.data[self.data["author_name"]==author].sort_values(by="count",ascending=False)
         conference = list(data["conference_name"])
         confidence = list(data["count"])
+
         return [conference,confidence]
    
     def query_batch(self,batch):
@@ -45,10 +49,13 @@ class BaselineModel(AbstractModel):
             str[]: name of the conference
             double[]: confidence scores
         """
+        if not isinstance(batch,list):
+            raise TypeError("argument 'batch' needs to be a list of author names.")
+        
         data = self.data[self.data["author_name"].isin(batch)]
         
         count = len(data)
-        checkpoint = int(count/20)
+        checkpoint = max(int(count/20),1)
         i = 0
         recommendations = {}
         for index, row in data.iterrows():

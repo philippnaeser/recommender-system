@@ -4,6 +4,8 @@ Created on Tue Apr 24 16:23:29 2018
 
 @author: Steff
 """
+import sys
+sys.path.insert(0, ".\..\data")
 
 from BaselineModel import BaselineModel
 from DataLoader import DataLoader
@@ -24,7 +26,7 @@ data_test = d.data
 model_test = BaselineModel()
 model_test.train(data_test)
 
-authors = model_test.get_author_names(count=0)
+authors = list(model_test.get_author_names(count=0))
 
 print("Getting recommendations.")
 recommendation = model.query_batch(authors)

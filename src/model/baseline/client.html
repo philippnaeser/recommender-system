@@ -19,15 +19,15 @@
 						data:{"author":$("#author").val()}
 					}).done(function(data){
 						var cont = $("#results").empty();
-						console.log("done: " + Object.keys(data["conference_name"]).length);
-						if (Object.keys(data["conference_name"]).length==0) {
+						//console.log("done: " + Object.keys(data["conference_name"]).length);
+						if (data[0].length==0) {
 							console.log("no results");
 							cont.text("No results.");
 						} else {
-							for (var i in data["conference_name"]) {
+							for (var i in data[0]) {
 								cont.append(
-									$("<h1>").text(data["conference_name"][i]),
-									$("<span>").text("confidence: " + data["count"][i]),
+									$("<h1>").text(data[0][i]),
+									$("<span>").text("confidence: " + data[1][i]),
 								);
 							}
 						}
