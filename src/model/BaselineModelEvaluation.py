@@ -12,6 +12,10 @@ from DataLoader import DataLoader
 #import pandas as pd
 #import numpy as np
 
+"""
+    Prepare the data for the evaluation.
+"""
+
 d = DataLoader()
 d.papers(["2013","2014","2015"]).contributions().conferences()
 data_train = d.data
@@ -35,5 +39,14 @@ truth = model_test.query_batch(authors)
 
 from RecallEvaluation import RecallEvaluation
 
+"""
+    Get some evaluation scores.
+"""
+
+# add your evaluations here:
+
 evaluation = RecallEvaluation()
 evaluation.evaluate(recommendation,truth)
+
+#evaluation = ...Evaluation()
+#evaluation.evaluate(recommendation,truth)

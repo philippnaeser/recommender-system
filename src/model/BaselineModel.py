@@ -14,6 +14,7 @@ class BaselineModel(AbstractModel):
     #def __init__(self,data):
         #AbstractModel.__init__(self,data)
     
+    ##########################################
     def query_single(self,author):
         """
         Queries the model and returns a list of recommendations.
@@ -22,7 +23,6 @@ class BaselineModel(AbstractModel):
             author (str): The author name.
         
         Returns:
-            str[]: id of the conference
             str[]: name of the conference
             double[]: confidence scores
         """
@@ -35,6 +35,7 @@ class BaselineModel(AbstractModel):
 
         return [conference,confidence]
    
+    ##########################################
     def query_batch(self,batch):
         """
         Queries the model and returns a list of recommendations for each request.
@@ -91,6 +92,7 @@ class BaselineModel(AbstractModel):
             
         return [conference,confidence]
     
+    ##########################################
     def train(self,data):
         """
         Set the data to be searched for by author name.
@@ -109,8 +111,20 @@ class BaselineModel(AbstractModel):
         data["count"] = pd.Series(np.ones(len(data)))
         self.data = data[["author_name","conference_name","count"]].groupby(by=["author_name","conference_name"]).sum().reset_index()
         #self.data.drop_duplicates(inplace=True)
-        
+      
+    ##########################################
     def get_author_names(self,term="",count=10):
+        """
+        Returns the first 'count' number of author names starting with the string 'term'.
+        If count=0, then all author names starting with 'term' will be returned.
+        
+        Args:
+            term (str): String the author name starts with.
+            count (int): The number of authors to return.
+            
+        Returns:
+            A list of author names (strings).
+        """
         authors = pd.Series(self.data["author_name"].unique())
         
         if count>0:
