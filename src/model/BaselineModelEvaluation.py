@@ -37,16 +37,33 @@ recommendation = model.query_batch(authors)
 print("Getting truth values.")
 truth = model_test.query_batch(authors)
 
-from RecallEvaluation import RecallEvaluation
-
 """
     Get some evaluation scores.
+    
+    Structure of parameters (for authors = [Heiko Paulheim, Sven Hertling]):
+        recommendation/truth = [
+                [
+                        ['International Semantic Web Conference',
+                         'Extended Semantic Web Conference',
+                         'European Semantic Web Conference',
+                         'International Conference on Discovery Science'
+                         ],
+                        ['Extended Semantic Web Conference']
+                ],
+                [
+                        [6.0, 3.0, 2.0, 1.0],
+                        [1.0]
+                ]
+        ]
 """
 
-# add your evaluations here:
+# add your evaluations here
+# call your file <yourname>Evaluation.py
 
+from RecallEvaluation import RecallEvaluation
 evaluation = RecallEvaluation()
 evaluation.evaluate(recommendation,truth)
 
+# from ...Evaluation import ...Evaluation
 #evaluation = ...Evaluation()
 #evaluation.evaluate(recommendation,truth)
