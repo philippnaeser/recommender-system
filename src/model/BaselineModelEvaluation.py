@@ -68,6 +68,10 @@ from FirstMatchEvaluation import FirstMatchEvaluation
 evaluation = FirstMatchEvaluation()
 evaluation.evaluate(recommendation,truth)
 
+from PrecisionEvaluation import PrecisionEvaluation
+evaluation = PrecisionEvaluation()
+evaluation.evaluate(recommendation,truth)
+
 # from ...Evaluation import ...Evaluation
 #evaluation = ...Evaluation()
 #evaluation.evaluate(recommendation,truth)
