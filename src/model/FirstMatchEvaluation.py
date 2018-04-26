@@ -19,34 +19,32 @@ class FirstMatchEvaluation(AbstractEvaluation):
             truth (list): The test set list of conferences attended
         
         Returns:
-            int: 1, if first recommendation is part of the truth
-                 0, if the first recommendation is not part of the truth
-                -1, if the query is a single author who is not covered in the 
-                test set
+            int: numer of first recommendations that are part of the truth 
+                normalized by the number of authors
             
     """
     
     def evaluate(self,recommendation,truth):
         
         count = 0
+        countNotInTest = 0
         i = 0
         
-        if not all (attended is None for attended in truth[0]):
+        if truth[0] is not None:
             for conferences in truth[0]:
-                ##Check if the author is in the test data
-                if truth[0][i] is None:
-                    pass
-                else:
+                if truth[0][i] is not None:
                     if recommendation[0][i] is not None: 
-                        if recommendation[0][i][0] in conferences[0]:
+                        if recommendation[0][i][0] in truth[0][i]:
                             count += 1
-                    i += 1
+                else:
+                    countNotInTest += 1
+                i += 1
         
-        if i!=0:
-            measure = count/i
+        ##Calculate FirstMatch (ignore authors who are not in the test set)
+        if countNotInTest != i:
+            measure = count/(i-countNotInTest)
         else:
-            measure = -1
-            print("The author is not in the test set")
-
+            measure = count/i
+        
         print("FirstMatch = {}".format(measure))
         return measure
