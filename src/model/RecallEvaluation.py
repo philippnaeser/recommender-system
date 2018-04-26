@@ -12,8 +12,7 @@ from AbstractClasses import AbstractEvaluation
 class RecallEvaluation(AbstractEvaluation):
     
     """
-        Calculates how many conferences from the test set were covered in 
-        the recommendations.
+        Calculates the fraction of attended conferences that were recommended.
         
         Args:
             recommendation (list): The list of recommendations returned 
@@ -21,7 +20,7 @@ class RecallEvaluation(AbstractEvaluation):
             truth (list): The test set list of conferences attended
         
         Returns:
-            int: #recommendedConferences / #attendedConferences, or
+            int: #recommended and attended conferences / #attended conferences, 
                 -1, if the query is a single author who is not covered in the 
                 test set
             
