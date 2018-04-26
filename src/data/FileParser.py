@@ -579,7 +579,8 @@ attributes_contribution = [
 
 
 
-parser = FileParser()
+#parser = FileParser()
+
 #parser.getData("contributions_2014#publishedName")
 #parser.getData("contributions_2015#publishedName")
 #parser.getData("contributions_2017#publishedName")
