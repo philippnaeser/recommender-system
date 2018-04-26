@@ -60,6 +60,19 @@ class FileParser:
     path_raw = "..\\..\\data\\raw\\"
     path_persistent = "..\\..\\data\\interim\\parser\\"
     
+    years = list(range(2011,2018)) + [
+                "2009-2010",
+                "2006-2008",
+                "2001-2005",
+                "1996-2000",
+                "1991-1995",
+                "1981-1990",
+                "1971-1980",
+                "1951-1970",
+                "1901-1950",
+                "1801-1900"
+            ]
+    
     def __init__(self):
         self.start_time = []
         self.persistent = {}
@@ -160,7 +173,7 @@ class FileParser:
         }
         
         # initialize processes of yearly data
-        for year in range(2011,2018):
+        for year in FileParser.years:
             year = str(year)
             ### chapters
             self.processes["chapters_" + year] = {
@@ -625,3 +638,35 @@ parser = FileParser()
 #parser.getData("contributions_2013#isCorresponding")
 #parser.getData("contributions_2013#order")
 #parser.getData("contributions_chapters_2013")
+
+def parseYear(year):
+    parser.getData("chapters_" + year)
+    parser.getData("chapters_books_" + year)
+    parser.getData("chapters_bookeditions_" + year)
+    parser.getData("chapters_" + year + "#title")
+    parser.getData("chapters_" + year + "#language")
+    parser.getData("chapters_" + year + "#abstract")
+    parser.getData("contributions_" + year)
+    parser.getData("contributions_" + year + "#publishedName")
+    parser.getData("contributions_" + year + "#isCorresponding")
+    parser.getData("contributions_" + year + "#order")
+    parser.getData("contributions_chapters_" + year)
+    
+#parseYear("2012")
+#parseYear("2011")
+
+#years = [
+#        "2009-2010",
+#        "2006-2008",
+#        "2001-2005",
+#        "1996-2000",
+#        "1991-1995",
+#        "1981-1990",
+#        "1971-1980",
+#        "1951-1970",
+#        "1901-1950",
+#        "1801-1900"
+#    ]
+
+#for y in years:
+#    parseYear(y)
