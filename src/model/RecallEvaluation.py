@@ -26,7 +26,7 @@ class RecallEvaluation(AbstractEvaluation):
     
     def evaluate(self,recommendation,truth):       
         
-        countRecommendedAttended = 0
+        countCorrectRecommendations = 0
         countAttended = 0
         
         allAttended = set()
@@ -52,7 +52,7 @@ class RecallEvaluation(AbstractEvaluation):
         #Count how many conferences from the test set were covered in the recommendations
         for conferences in allRecommendations:
             if conferences in allAttended:
-                countRecommendedAttended += 1
+                countCorrectRecommendations += 1
         
         ##Count how many conferences the author actually attended 
         i = 0
@@ -64,7 +64,7 @@ class RecallEvaluation(AbstractEvaluation):
         
         #Calculate recall
         if countAttended != 0:
-            measure = countRecommendedAttended/countAttended
+            measure = countCorrectRecommendations/countAttended
         else:
             measure = 0
             

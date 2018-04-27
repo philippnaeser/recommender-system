@@ -24,7 +24,7 @@ class PrecisionEvaluation(AbstractEvaluation):
     
     def evaluate(self,recommendation,truth):
         
-        countRecommendedAttended = 0
+        countCorrectRecommendations = 0
         countRecommended = 0
         countNotInTest = 0
         
@@ -55,11 +55,11 @@ class PrecisionEvaluation(AbstractEvaluation):
         #Count how many conferences from the test set were covered in the recommendations
         for conferences in allRecommendations:
             if conferences in allAttended:
-                countRecommendedAttended += 1
+                countCorrectRecommendations += 1
         
         
         ##Count how many conferences were recommended, including authors not
-        ##in the test set
+        ##in the test sets
         if recommendation[0] is not None:
             for rec in recommendation[0]:
                 if rec is not None:
@@ -68,9 +68,9 @@ class PrecisionEvaluation(AbstractEvaluation):
         
         ##Calculate precision (ignore authors who are not in the test set)
         if countNotInTest != countRecommended:
-            measure = countRecommendedAttended/(countRecommended-countNotInTest)
+            measure = countCorrectRecommendations/(countRecommended-countNotInTest)
         else:
-            measure = countRecommendedAttended/countRecommended
+            measure = countCorrectRecommendations/countRecommended
 
         print("Precision = {}".format(measure))
         return measure
