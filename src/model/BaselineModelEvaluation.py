@@ -76,6 +76,9 @@ from FMeasureEvaluation import FMeasureEvaluation
 evaluation = FMeasureEvaluation()
 evaluation.evaluate(recommendation,truth, 1)
 
+from MAPEvaluation import MAPEvaluation
+evaluation = MAPEvaluation()
+evaluation.evaluate(recommendation, truth)
 
 # from ...Evaluation import ...Evaluation
 #evaluation = ...Evaluation()
