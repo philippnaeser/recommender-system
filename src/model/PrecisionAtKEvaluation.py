@@ -20,16 +20,13 @@ class PrecisionAtKEvaluation(AbstractEvaluation):
         Returns:
             int: ratio of the number of recommended relevant conferences until 
                 rank k and the total number of recommended conferences until
-                rank k, normalized by the number of authors considered and who
-                are in the test set
+                rank k
             
     """
     
     def evaluate(self, recommendation, truth, k):
         
         countRecUntilK = 0
-        countNotInTest = 0
-        countAuthors = len(recommendation[0])
         
         allAttended = set()
         topKRecommendations = set()
@@ -43,9 +40,6 @@ class PrecisionAtKEvaluation(AbstractEvaluation):
                     for j in range(len(truth[0][i])):
                         if truth[0][i][j] is not None:
                             allAttended.add(truth[0][i][j])
-                else:
-                    countNotInTest += 1
-                i += 1
                 
            
         ##Create a list of unique top k recommended conferences
@@ -62,14 +56,15 @@ class PrecisionAtKEvaluation(AbstractEvaluation):
             if conferences in allAttended:
                 countRecUntilK += 1
         
-        ##Calculate precision at rank k 
-        ##Normalize by the number of authors considered (ignore authors not in 
-        ##the test set)
-        if countAuthors!= countNotInTest:
-            measure = countRecUntilK/(k*(countAuthors-countNotInTest))
+        ##Calculate precision at rank k
+        ##Set precision@k to 1, if there are no conferences recommended 
+        ##(i.e. the number of conferences at k is zero)
+ 
+        if k != 0:
+            measure = countRecUntilK/k
         else:
-            measure = 0
-        
+            measure = 1
+    
         print("Precision@{} = {}".format(k,measure))
         return measure
     
