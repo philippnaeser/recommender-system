@@ -63,10 +63,11 @@ class RecallEvaluation(AbstractEvaluation):
                 i += 1
         
         #Calculate recall
-        if countAttended != 0:
+        ##Set recall to 1 if there are no attended conferences in the test set
+        if not (any(conf is None for conf in truth[0])):
             measure = countCorrectRecommendations/countAttended
         else:
-            measure = 0
+            measure = 1
             
         print("Recall = {}".format(measure))
         return measure
