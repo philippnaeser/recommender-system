@@ -64,13 +64,18 @@ from RecallEvaluation import RecallEvaluation
 evaluation = RecallEvaluation()
 evaluation.evaluate(recommendation,truth)
 
+from PrecisionEvaluation import PrecisionEvaluation
+evaluation = PrecisionEvaluation()
+evaluation.evaluate(recommendation,truth)
+
 from FirstMatchEvaluation import FirstMatchEvaluation
 evaluation = FirstMatchEvaluation()
 evaluation.evaluate(recommendation,truth)
 
-from PrecisionEvaluation import PrecisionEvaluation
-evaluation = PrecisionEvaluation()
-evaluation.evaluate(recommendation,truth)
+from FMeasureEvaluation import FMeasureEvaluation
+evaluation = FMeasureEvaluation()
+evaluation.evaluate(recommendation,truth, 1)
+
 
 # from ...Evaluation import ...Evaluation
 #evaluation = ...Evaluation()
