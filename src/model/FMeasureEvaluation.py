@@ -12,7 +12,8 @@ from PrecisionEvaluation import PrecisionEvaluation
 
 class FMeasureEvaluation(AbstractEvaluation):
     
-    """
+    def evaluate(self, recommendation, truth, beta):
+        """
         Computes the F-beta measure of the model.
         
         Args:
@@ -25,10 +26,7 @@ class FMeasureEvaluation(AbstractEvaluation):
         Returns:
             int: F-beta score 
             
-    """
-    
-    def evaluate(self, recommendation, truth, beta):
-        
+        """
         recall = RecallEvaluation().evaluate(recommendation, truth) 
         precision = PrecisionEvaluation().evaluate(recommendation, truth)
         
