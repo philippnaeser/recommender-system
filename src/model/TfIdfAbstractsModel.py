@@ -15,7 +15,7 @@ import re
 import os
 import pickle
 
-class AbstractsModel(AbstractModel):
+class TfIdfAbstractsModel(AbstractModel):
     
     persistent_file = "..\\..\\data\\processed\\abstracts.model.pkl"
     
@@ -57,7 +57,11 @@ class AbstractsModel(AbstractModel):
     
     ##########################################
     def query_batch(self,batch):
-        pass
+        #print(batch)
+        q_v = (self.stem_vectorizer.transform(batch))
+        #print(q_v)
+        sim = cosine_similarity(q_v,self.stem_matrix)
+        print(len(sim))
     
     ##########################################
     def train(self,data):
@@ -85,13 +89,13 @@ class AbstractsModel(AbstractModel):
     
     ##########################################
     def _save_model(self):
-        with open(AbstractsModel.persistent_file,"wb") as f:
+        with open(TfIdfAbstractsModel.persistent_file,"wb") as f:
             pickle.dump([self.stem_matrix, self.stem_vectorizer, self.data], f)
     
     ##########################################
     def _load_model(self):
-        if os.path.isfile(AbstractsModel.persistent_file):
-            with open(AbstractsModel.persistent_file,"rb") as f:
+        if os.path.isfile(TfIdfAbstractsModel.persistent_file):
+            with open(TfIdfAbstractsModel.persistent_file,"rb") as f:
                 print("... loading ...")
                 self.stem_matrix, self.stem_vectorizer, self.data = pickle.load(f)
                 print("... loaded.")

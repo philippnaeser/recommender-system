@@ -8,7 +8,7 @@ Created on Tue May  1 14:39:50 2018
 import sys
 sys.path.insert(0, ".\..\data")
 
-from AbstractsModel import AbstractsModel
+from TfIdfAbstractsModel import TfIdfAbstractsModel
 from DataLoader import DataLoader
 import pandas as pd
 
@@ -24,10 +24,12 @@ if not d.get_persistent(filename):
     )
     d.make_persistent(filename)
 
-model = AbstractsModel()
-model.train(d.data[0:20000])
+model = TfIdfAbstractsModel()
+model.train(d.data)
 #model.print_top_k(10)
 
 
-test = model.query_single("Hello there, what is going on have some data for me dude please vector")
-print(test)
+#test = model.query_single("Hello there, what is going on have some data for me dude please vector")
+#print(test)
+
+test = model.query_batch(list(d.data.chapter_abstract[0:3]))
