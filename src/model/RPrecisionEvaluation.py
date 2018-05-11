@@ -12,7 +12,7 @@ class RPrecisionEvaluation(AbstractEvaluation):
     
     def evaluate(self,recommendation,truth):
         """
-        Computes the R-precision of a query
+        Computes the R-precision of a single query.
         
         Args:
             recommendation (list): The list of recommendations returned 
