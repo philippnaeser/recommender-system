@@ -60,25 +60,31 @@ truth = model_test.query_batch(authors)
 # add your evaluations here
 # call your file <yourname>Evaluation.py
 
-from RecallEvaluation import RecallEvaluation
-evaluation = RecallEvaluation()
-evaluation.evaluate(recommendation,truth)
-
-from PrecisionEvaluation import PrecisionEvaluation
-evaluation = PrecisionEvaluation()
-evaluation.evaluate(recommendation,truth)
-
+print("Computing FirstMatch.")
 from FirstMatchEvaluation import FirstMatchEvaluation
 evaluation = FirstMatchEvaluation()
 evaluation.evaluate(recommendation,truth)
 
+print("Computing recall.")
+from RecallEvaluation import RecallEvaluation
+evaluation = RecallEvaluation()
+evaluation.evaluate(recommendation,truth)
+
+print("Computing precision.")
+from PrecisionEvaluation import PrecisionEvaluation
+evaluation = PrecisionEvaluation()
+evaluation.evaluate(recommendation,truth)
+
+print("Computing F-measure.")
 from FMeasureEvaluation import FMeasureEvaluation
 evaluation = FMeasureEvaluation()
 evaluation.evaluate(recommendation,truth, 1)
 
+print("Computing MAP.")
 from MAPEvaluation import MAPEvaluation
 evaluation = MAPEvaluation()
 evaluation.evaluate(recommendation, truth)
+
 
 # from ...Evaluation import ...Evaluation
 #evaluation = ...Evaluation()
