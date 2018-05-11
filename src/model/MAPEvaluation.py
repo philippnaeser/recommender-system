@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Apr 27 14:59:26 2018
+Created on Thu May 10 23:14:36 2018
 
 @author: Andreea
 """
 
 from AbstractClasses import AbstractEvaluation
-from AveragePrecisionEvaluation import AveragePrecisionEvaluation
 
 class MAPEvaluation(AbstractEvaluation):
     
-    """
-        Computes the mean average precision (MAP) for all queries 
+    def evaluate(self,recommendation,truth):
+        """
+        Computes the mean average precision (MAP) for all queries. 
         
         Args:
             recommendation (list): The list of recommendations returned 
@@ -21,28 +21,50 @@ class MAPEvaluation(AbstractEvaluation):
         Returns:
             int: the mean of all average precision scores for all the queries
             
-    """
-    
-    def evaluate(self,recommendation,truth):
+        """
+        sumAveragePrecisions = 0
+        rank = 0
         
-        sumAveragePrecision = 0
-        i = 0
+        count = len(recommendation[0])
+        checkpoint = max(int(count/20),1)
         
-        ##Sum the average precision values for all the queries
-        if recommendation[0]:
-            for conference in recommendation[0]:
-                if conference is not None:
-                    sumAveragePrecision += AveragePrecisionEvaluation().evaluate(recommendation, truth)
-                i += 1
-        
-        ##Calculate the mean average precision
-        if i!= 0:
-            measure = sumAveragePrecision/i
-        else:
-            measure = 0
+        #Sum the average precisions@k for all queries
+        for i in range(len(recommendation[0])):
+            
+            if (i%checkpoint)==0:
+                print("Computing average precision: {}%".format(int(i/count*100)))
+            
+            sumPrecisions = 0
+            averagePrecision = 0
+              
+            if truth[0][i] is not None:
+                if recommendation[0][i] is not None:  
+                    for j in range(len(recommendation[0][i])):
+                        if (recommendation[0][i][j] is not None) and (recommendation[0][i][j] in truth[0][i]):
+                           rank = j+1
+                           sumPrecisions = self._precisionAtK(recommendation[0][i], truth[0][i], rank)
+                        
+                    averagePrecision = sumPrecisions/len(truth[0][i])
+            sumAveragePrecisions += averagePrecision
+
+        measure = sumAveragePrecisions/len(recommendation[0])
         
         print("Mean average precision = {}".format(measure))
         return measure
-                
-                
+    
+    
+    def _precisionAtK(self, recommendation, truth, k):
+        
+        countRelevantRetrieved = 0   
+        
+        for i in range(len(recommendation)):
+            rank = i+1
+            if (recommendation[i] in truth) and (rank<=k):
+                countRelevantRetrieved += 1
             
+        if k!= 0:
+            measure = countRelevantRetrieved/k
+        else:
+            measure = 0
+        
+        return measure
