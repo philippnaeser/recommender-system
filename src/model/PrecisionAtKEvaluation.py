@@ -10,7 +10,7 @@ class PrecisionAtKEvaluation(AbstractEvaluation):
     
     def evaluate(self, recommendation, truth, k):
         """
-        Computes the precision at rank k
+        Computes the precision at rank k for a single query.
         
         Args:
             recommendation (list): The list of recommendations returned 
@@ -23,47 +23,24 @@ class PrecisionAtKEvaluation(AbstractEvaluation):
                 rank k and the total number of recommended conferences until
                 rank k
             
-        """
-        countRecUntilK = 0
+        """ 
+        countRelevantRetrieved = 0   
         
-        allAttended = set()
-        topKRecommendations = set()
-        
-        ##Create a list of unique conferences from the test data
-        ##Count how many authors are not in the test set
-        i = 0
-        if truth[0] is not None:
-            for attended in truth[0]:
-                if truth[0][i] is not None:
-                    for j in range(len(truth[0][i])):
-                        if truth[0][i][j] is not None:
-                            allAttended.add(truth[0][i][j])
-                
-           
-        ##Create a list of unique top k recommended conferences
         for i in range(len(recommendation[0])):
-            if recommendation[0][i] is not None:             
-                for j in range(len(recommendation[0][i])):
-                    if recommendation[0][i][j] is not None:
-                        if (j+1)<=k:
-                            topKRecommendations.add(recommendation[0][i][j])
+            if truth[0][i] is not None:
+                if recommendation[0][i] is not None:  
+                    for j in range(len(recommendation[0][i])):
+                        rank = j+1
+                        if (recommendation[0][i][j] is not None) and (rank<=k):
+                            if recommendation[0][i][j] in truth[0][i]:
+                                countRelevantRetrieved += 1
         
-        #Count how many conferences from the test set were covered in the 
-        #top k recommendations
-        for conferences in topKRecommendations:
-            if conferences in allAttended:
-                countRecUntilK += 1
-        
-        ##Calculate precision at rank k
-        ##Set precision@k to 1, if there are no conferences recommended 
-        ##(i.e. the number of conferences at k is zero)
- 
-        if k != 0:
-            measure = countRecUntilK/k
-        else:
-            measure = 1
-    
-        print("Precision@{} = {}".format(k,measure))
+            if k!= 0:
+                measure = countRelevantRetrieved/k
+            else:
+                measure = 0
+         
+        #print("Precision@{} = {}".format(k,measure))
         return measure
     
         
