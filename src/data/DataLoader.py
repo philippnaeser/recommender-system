@@ -7,8 +7,11 @@ Created on Fri Apr 20 23:57:37 2018
 
 import FileParser
 import pandas as pd
+import pickle
 
 class DataLoader:
+    
+    path = "..\\..\\data\\processed\\"
     
     #path = FileParser.FileParser.path_persistent
     
@@ -287,3 +290,21 @@ class DataLoader:
             self.data = df
             
         return self
+    
+    
+    
+    def make_persistent(self, filename):
+        file = self.path + "\\" + filename
+        with open(file,"wb") as f:
+            pickle.dump(self.data, f)
+    
+    
+    
+    def get_persistent(self, filename):
+        try:
+            file = self.path + "\\" + filename
+            with open(file,"rb") as f:
+                self.data = pickle.load(f)
+                return True
+        except FileNotFoundError:
+            return False

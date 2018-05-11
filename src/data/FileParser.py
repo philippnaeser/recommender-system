@@ -600,7 +600,8 @@ attributes_contribution = [
 #parser.getData("chapters_2015#language")
 #parser.getData("chapters_2016#language")
 #parser.getData("chapters_2017#language")
-               
+    
+#parser.getData("conferences")
 #parser.getData("conferences#acronym")
 #parser.getData("conferences#city")
 #parser.getData("conferences#country")

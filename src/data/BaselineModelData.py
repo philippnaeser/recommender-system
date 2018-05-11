@@ -9,6 +9,8 @@ import FileParser
 import pandas as pd
 import numpy as np
 
+parser = FileParser.FileParser()
+
 books = parser.getData("books_conferences")
 conferences_name =  parser.getData("conferences#name")
 chapters = parser.getData("chapters_books_2016")
@@ -67,3 +69,14 @@ grouped = data[["author_name","conference_name","count"]].groupby(by=["author_na
 
 path = "..\\..\\data\\processed\\"
 grouped.to_csv(path + "baseline.model.csv")
+
+
+
+import sys
+sys.path.insert(0, ".\..\data")
+import DataLoader
+
+d = DataLoader.DataLoader()
+data_test = d.papers(["2017"]).contributions().conferences().data
+data_test["count"] = pd.Series(np.ones(len(data)))
+grouped_test = data_test[["author_name","conference","conference_name","count"]].groupby(by=["author_name","conference","conference_name"]).sum().reset_index()

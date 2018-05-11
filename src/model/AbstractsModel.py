@@ -26,9 +26,11 @@ class AbstractsModel(AbstractModel):
         self.stem_vectorizer = TfidfVectorizer(
                 tokenizer=self
                 ,stop_words="english"
-                ,min_df=0.2
-                ,max_df=0.3
+                #,min_df=0.2
+                #,max_df=0.8
         )
+        # number of recommendations to return
+        self.recs = 10
     
     ##########################################
     def query_single(self,abstract):
@@ -43,10 +45,15 @@ class AbstractsModel(AbstractModel):
             double[]: confidence scores
         """
         q_v = (self.stem_vectorizer.transform([abstract]))
+        #print(q_v)
         sim = cosine_similarity(q_v,self.stem_matrix)[0]
-        return self.data[np.argsort(
-                sim
-        )]
+        o = np.argsort(-sim)
+        #print(self.data.chapter_abstract[o][0:10])
+        print(self.data.iloc[o[0]].chapter_abstract)
+        return [
+                list(self.data.iloc[o][0:self.recs].conference_name),
+                sim[o][0:self.recs]
+                ]
     
     ##########################################
     def query_batch(self,batch):
