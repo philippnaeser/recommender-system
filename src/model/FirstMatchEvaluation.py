@@ -10,7 +10,8 @@ from AbstractClasses import AbstractEvaluation
 
 class FirstMatchEvaluation(AbstractEvaluation):
     
-    """
+    def evaluate(self,recommendation,truth):
+        """
         Checks if the first recommendation is part of the truth.
         
         Args:
@@ -22,10 +23,7 @@ class FirstMatchEvaluation(AbstractEvaluation):
             int: numer of first recommendations that are part of the truth 
                 normalized by the number of authors
             
-    """
-    
-    def evaluate(self,recommendation,truth):
-        
+        """
         count = 0
         countNotInTest = 0
         i = 0

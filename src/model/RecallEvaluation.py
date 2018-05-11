@@ -11,7 +11,8 @@ from AbstractClasses import AbstractEvaluation
 
 class RecallEvaluation(AbstractEvaluation):
     
-    """
+    def evaluate(self,recommendation,truth):   
+        """
         Calculates the fraction of attended conferences that were recommended.
         
         Args:
@@ -22,10 +23,7 @@ class RecallEvaluation(AbstractEvaluation):
         Returns:
             int: #recommended and attended conferences / #attended conferences
             
-    """
-    
-    def evaluate(self,recommendation,truth):       
-        
+        """    
         countCorrectRecommendations = 0
         countAttended = 0
         
@@ -40,6 +38,7 @@ class RecallEvaluation(AbstractEvaluation):
                     for j in range(len(truth[0][i])):
                         if truth[0][i][j] is not None:
                             allAttended.add(truth[0][i][j])
+                            
                 i += 1    
         
         ##Create a list of unique recommended conferences 
@@ -64,10 +63,11 @@ class RecallEvaluation(AbstractEvaluation):
         
         #Calculate recall
         ##Set recall to 1 if there are no attended conferences in the test set
-        if not (any(conf is None for conf in truth[0])):
+        if countAttended!=0:
             measure = countCorrectRecommendations/countAttended
         else:
             measure = 1
-            
+        
+        
         print("Recall = {}".format(measure))
         return measure

@@ -9,7 +9,8 @@ from AbstractClasses import AbstractEvaluation
 
 class PrecisionEvaluation(AbstractEvaluation):
     
-    """
+    def evaluate(self,recommendation,truth):
+        """
         Calculates how many recommendations are relevant to the query
         
         Args:
@@ -20,10 +21,7 @@ class PrecisionEvaluation(AbstractEvaluation):
         Returns:
             int: #recommended and attended conferences / #recommended conferences
             
-    """
-    
-    def evaluate(self,recommendation,truth):
-        
+        """
         countCorrectRecommendations = 0
         countRecommended = 0
         countNotInTest = 0

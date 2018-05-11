@@ -10,7 +10,8 @@ from PrecisionAtKEvaluation import PrecisionAtKEvaluation
 
 class RPrecisionEvaluation(AbstractEvaluation):
     
-    """
+    def evaluate(self,recommendation,truth):
+        """
         Computes the R-precision of a query
         
         Args:
@@ -22,9 +23,7 @@ class RPrecisionEvaluation(AbstractEvaluation):
             int: the precision at rank k, where k is equal to the number of
                 relevant conferences (from the ground truth) for the query
             
-    """
-    
-    def evaluate(self,recommendation,truth):
+        """
         
         rank = 0
         
@@ -36,7 +35,7 @@ class RPrecisionEvaluation(AbstractEvaluation):
                     rank += len(truth[0][i])
                 i += 1
         
-        ##Calculate R-Precision s
+        ##Calculate R-Precision 
         measure = PrecisionAtKEvaluation().evaluate(recommendation,truth,rank)
         
         print("R-Precision = {}".format(measure))

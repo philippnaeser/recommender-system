@@ -8,7 +8,8 @@ from AbstractClasses import AbstractEvaluation
 
 class PrecisionAtKEvaluation(AbstractEvaluation):
     
-    """
+    def evaluate(self, recommendation, truth, k):
+        """
         Computes the precision at rank k
         
         Args:
@@ -22,10 +23,7 @@ class PrecisionAtKEvaluation(AbstractEvaluation):
                 rank k and the total number of recommended conferences until
                 rank k
             
-    """
-    
-    def evaluate(self, recommendation, truth, k):
-        
+        """
         countRecUntilK = 0
         
         allAttended = set()
