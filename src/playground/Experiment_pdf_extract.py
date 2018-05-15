@@ -8,6 +8,8 @@ import PyPDF2
 #Note: another option would be textract, yet this does not even install when
 #trying pip install textract. Might be worth a shot to try and fix this
 #should the others not work
+
+#pip install pdfminer.six (six means support for python 2 and 3 appearently)
 from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.converter import TextConverter
 from pdfminer.layout import LAParams
