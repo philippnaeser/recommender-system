@@ -53,6 +53,18 @@ class AbstractModel:
             raise TypeError("argument 'data' needs to be of type pandas.DataFrame")
         
         pass
+    
+    ##########################################        
+    def count_init(self,size,ticks=100):
+        self.count_size = size
+        self.count_i = 0
+        self.count_checkpoint = max(int(size/ticks),1)
+        
+    ##########################################        
+    def count(self):
+        self.count_i += 1
+        if (self.count_i % self.count_checkpoint == 0):
+            print("Checkpoint reached: {}%".format(int(self.count_i*100/self.count_size)))
 
 
 

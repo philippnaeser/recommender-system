@@ -6,43 +6,59 @@ Created on Tue May  1 14:37:51 2018
 """
 
 from AbstractClasses import AbstractModel 
-import pandas as pd
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
-from nltk.stem.porter import PorterStemmer # use the stemmer from nltk
+from nltk.stem.porter import PorterStemmer
 from sklearn.metrics.pairwise import cosine_similarity
 import re
 import os
 import pickle
+from multiprocessing import Process, Pipe, Queue, Pool
+
+class Batchifier():
+    def __init__(self):
+        self.p, self.p_c = Pipe()
+
+    def run(self):
+        p = Process(target=self.f, args=(self.p_c,))
+        p.start()
+        #print(self.q.get())
+        print(self.p.recv())
+        p.join()
+
+    def f(self, pipe):
+        pipe.send("test")
+        pipe.close()
+        #self.q.put(x*x)
 
 class TfIdfAbstractsModel(AbstractModel):
     
-    persistent_file = "..\\..\\data\\processed\\abstracts.model.pkl"
+    persistent_file = "..\\..\\data\\processed\\abstracts.tfidf.model.pkl"
     
     ##########################################
-    def __init__(self):
+    def __init__(self,recs=10):
         self.stemmer = PorterStemmer()
         self.token_pattern = re.compile(r"(?u)\b\w\w+\b")
         self.stem_vectorizer = TfidfVectorizer(
                 tokenizer=self
                 ,stop_words="english"
-                #,min_df=0.2
+                #,min_df=0.01
                 #,max_df=0.8
         )
         # number of recommendations to return
-        self.recs = 10
+        self.recs = recs
     
     ##########################################
     def query_single(self,abstract):
         """
-        Queries the model and returns a list of recommendations.
-        
-        Args:
-            abstract (str): The abstract as a string.
-        
-        Returns:
-            str[]: name of the conference
-            double[]: confidence scores
+            Queries the model and returns a list of recommendations.
+            
+            Args:
+                abstract (str): The abstract as a string.
+            
+            Returns:
+                str[]: name of the conference
+                double[]: confidence scores
         """
         q_v = (self.stem_vectorizer.transform([abstract]))
         #print(q_v)
@@ -56,12 +72,90 @@ class TfIdfAbstractsModel(AbstractModel):
                 ]
     
     ##########################################
-    def query_batch(self,batch):
-        #print(batch)
+    def query_batch(self,batch,batchsize=1000):
+        """
+            Queries the model and returns a list of recommendations for each request.
+            
+            Args:
+                batch[str]: The list of abstracts.
+            
+            Returns:
+                A list of size 'len(batch)' which contains the recommendations for each item of the batch.
+                If author not found, the value is None.
+                
+                str[]: name of the conference
+                double[]: confidence scores
+        """
+        conference = list()
+        confidence = list()
+        self.count_init(len(batch))
+        
+        batches = np.arange(0,len(batch),batchsize)
+        batchcount = 1
+        
+        bf = Batchifier()
+        
+        for i in batches:
+            print("Starting batch {}/{}.".format(batchcount,len(batches)))
+            batchcount += 1
+            #self._query_minibatch(batch[i:(i+batchsize)],conference,confidence)
+            #p = Process(target=self._query_minibatch, args=(self,batch[i:(i+batchsize)],))
+            #parent, child = Pipe()
+            print("before p")
+            #p = Process(target=self._query_minibatch, args=())
+            bf.run()
+            print("before start")
+            #p.start()
+            #child.send([batch[i:(i+batchsize)]])
+            #child.close()
+            print("before recv")
+            #print(parent.recv())
+            print("before join")
+            #p.join()
+            break
+            
+        return [conference,confidence]
+    
+    ##########################################
+    def _query_minibatch(self):
+        #batch = child.recv()
+        #child.send(["yes"])
+        #child.close()
+        text_file = open("D://Output.txt", "w")
+        text_file.write("I am the chosen one!")
+        text_file.close()
+        
+    """
+    def _query_minibatch(self,batch,conference=[],confidence=[]):
+        
+            This method is a helper method to minibatchify large batches.
+            Avoids OutOfMemory Exception.
+            
+            Args:
+                batch[str]: The minibatch containing abstracts.
+                conference[]: list of conferences which is filled by this method.
+                confidence[]: list of confidence scores which is filled by this method.
+        
         q_v = (self.stem_vectorizer.transform(batch))
+        print("Abstracts transformed.")
+        print("Dimensionality of current batch: {}".format(q_v.shape))
         #print(q_v)
         sim = cosine_similarity(q_v,self.stem_matrix)
-        print(len(sim))
+        print("Cosine similarity computed.")
+        o = np.argsort(-np.array(sim))
+        index = 0
+        for order in o:
+            conference.append(
+                    list(self.data.iloc[order][0:self.recs].conference_name)
+            )
+            confidence.append(
+                    sim[index][order][0:self.recs]
+            )
+            index += 1
+            #self.count()
+            
+        print("done")
+    """
     
     ##########################################
     def train(self,data):
