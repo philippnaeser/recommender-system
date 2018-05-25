@@ -13,23 +13,6 @@ from sklearn.metrics.pairwise import cosine_similarity
 import re
 import os
 import pickle
-from multiprocessing import Process, Pipe, Queue, Pool
-
-class Batchifier():
-    def __init__(self):
-        self.p, self.p_c = Pipe()
-
-    def run(self):
-        p = Process(target=self.f, args=(self.p_c,))
-        p.start()
-        #print(self.q.get())
-        print(self.p.recv())
-        p.join()
-
-    def f(self, pipe):
-        pipe.send("test")
-        pipe.close()
-        #self.q.put(x*x)
 
 class TfIdfAbstractsModel(AbstractModel):
     
@@ -72,7 +55,7 @@ class TfIdfAbstractsModel(AbstractModel):
                 ]
     
     ##########################################
-    def query_batch(self,batch,batchsize=1000):
+    def query_batch(self,batch):
         """
             Queries the model and returns a list of recommendations for each request.
             
@@ -86,76 +69,30 @@ class TfIdfAbstractsModel(AbstractModel):
                 str[]: name of the conference
                 double[]: confidence scores
         """
-        conference = list()
-        confidence = list()
+        conferences = list()
+        confidences = list()
         self.count_init(len(batch))
-        
-        batches = np.arange(0,len(batch),batchsize)
-        batchcount = 1
-        
-        bf = Batchifier()
-        
-        for i in batches:
-            print("Starting batch {}/{}.".format(batchcount,len(batches)))
-            batchcount += 1
-            #self._query_minibatch(batch[i:(i+batchsize)],conference,confidence)
-            #p = Process(target=self._query_minibatch, args=(self,batch[i:(i+batchsize)],))
-            #parent, child = Pipe()
-            print("before p")
-            #p = Process(target=self._query_minibatch, args=())
-            bf.run()
-            print("before start")
-            #p.start()
-            #child.send([batch[i:(i+batchsize)]])
-            #child.close()
-            print("before recv")
-            #print(parent.recv())
-            print("before join")
-            #p.join()
-            break
-            
-        return [conference,confidence]
-    
-    ##########################################
-    def _query_minibatch(self):
-        #batch = child.recv()
-        #child.send(["yes"])
-        #child.close()
-        text_file = open("D://Output.txt", "w")
-        text_file.write("I am the chosen one!")
-        text_file.close()
-        
-    """
-    def _query_minibatch(self,batch,conference=[],confidence=[]):
-        
-            This method is a helper method to minibatchify large batches.
-            Avoids OutOfMemory Exception.
-            
-            Args:
-                batch[str]: The minibatch containing abstracts.
-                conference[]: list of conferences which is filled by this method.
-                confidence[]: list of confidence scores which is filled by this method.
         
         q_v = (self.stem_vectorizer.transform(batch))
         print("Abstracts transformed.")
-        print("Dimensionality of current batch: {}".format(q_v.shape))
-        #print(q_v)
+        print("Dimensionality of batch: {}".format(q_v.shape))
         sim = cosine_similarity(q_v,self.stem_matrix)
         print("Cosine similarity computed.")
         o = np.argsort(-np.array(sim))
         index = 0
+        
         for order in o:
-            conference.append(
+            conferences.append(
                     list(self.data.iloc[order][0:self.recs].conference_name)
             )
-            confidence.append(
+            confidences.append(
+                    
                     sim[index][order][0:self.recs]
             )
             index += 1
-            #self.count()
+            self.count()
             
-        print("done")
-    """
+        return [conferences,confidences]
     
     ##########################################
     def train(self,data):

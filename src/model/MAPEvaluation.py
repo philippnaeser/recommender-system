@@ -42,7 +42,7 @@ class MAPEvaluation(AbstractEvaluation):
                     for j in range(len(recommendation[0][i])):
                         if (recommendation[0][i][j] is not None) and (recommendation[0][i][j] in truth[0][i]):
                            rank = j+1
-                           sumPrecisions = self._precisionAtK(recommendation[0][i], truth[0][i], rank)
+                           sumPrecisions = sumPrecisions + self._precisionAtK(recommendation[0][i], truth[0][i], rank)
                         
                     averagePrecision = sumPrecisions/len(truth[0][i])
             sumAveragePrecisions += averagePrecision
