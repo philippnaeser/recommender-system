@@ -57,8 +57,10 @@ nt_has_conference_series = "<http://scigraph.springernature.com/ontologies/core/
 class FileParser:
     regex = '([<"].*?[>"])+?'
     
-    path_raw = "..\\..\\data\\raw\\"
-    path_persistent = "..\\..\\data\\interim\\parser\\"
+    #path_raw = "..\\..\\data\\raw\\"
+    path_raw = "../../data/raw/"
+    #path_persistent = "..\\..\\data\\interim\\parser\\"
+    path_persistent = "../../data/interim/parser/"
     
     years = list(range(2011,2018)) + [
                 "2009-2010",
@@ -657,20 +659,28 @@ def parseYear(year):
 #parseYear("2012")
 #parseYear("2011")
 
-#years = [
-#        "2009-2010",
-#        "2006-2008",
-#        "2001-2005",
-#        "1996-2000",
-#        "1991-1995",
-#        "1981-1990",
-#        "1971-1980",
-#        "1951-1970",
-#        "1901-1950",
-#        "1801-1900"
-#    ]
+years = [
+        "2017",
+        "2016",
+        "2015",
+        "2014",
+        "2013",
+        "2012",
+        "2011",
+        "2009-2010",
+        "2006-2008",
+        "2001-2005",
+        "1996-2000",
+        "1991-1995",
+        "1981-1990",
+        "1971-1980",
+        "1951-1970",
+        "1901-1950",
+        "1801-1900"
+    ]
 
 #for y in years:
 #    parseYear(y)
     
-parser.getData("chapters_2014#abstract")
+for y in years:
+    parser.getData("chapters_" + y + "#abstract")
