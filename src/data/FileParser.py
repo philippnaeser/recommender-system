@@ -545,11 +545,11 @@ class FileParser:
         Called to process file containing abstracts.
     """
     def processLineChaptersAttributeAbstract(self,line,v,parameters):
-        line = re.findall(self.regex, line)
+        line = line.split(" ",2)
         
         if (line[1] == nt_abstract):
             if (line[0] in self.getData(parameters)):
-                v[line[0]] = line[2]
+                v[line[0]] = line[2][1:-3]
     
 
     
@@ -579,7 +579,7 @@ attributes_contribution = [
 
 
 
-#parser = FileParser()
+parser = FileParser()
 
 #parser.getData("contributions_2014#publishedName")
 #parser.getData("contributions_2015#publishedName")
@@ -672,3 +672,5 @@ def parseYear(year):
 
 #for y in years:
 #    parseYear(y)
+    
+parser.getData("chapters_2014#abstract")
