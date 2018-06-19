@@ -3,10 +3,10 @@
 Created on Tue May  1 14:37:51 2018
 
 @author: Steff
+@author: Andreea
 """
 
 from AbstractClasses import AbstractModel 
-import pandas as pd
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from nltk.stem.porter import PorterStemmer # use the stemmer from nltk
@@ -47,10 +47,11 @@ class NMFAbstractsModel(AbstractModel):
             double[]: confidence scores
         """
         
-        """
         q_v = (self.stem_vectorizer.transform([abstract]))
-        #print(q_v)
-        sim = cosine_similarity(q_v,self.stem_matrix)[0]
+        print(q_v)
+        transformed_q_v = self.nmf.transform(q_v)
+        print(transformed_q_v)
+        sim = cosine_similarity(transformed_q_v,self.nmf_L)[0]
         o = np.argsort(-sim)
         #print(self.data.chapter_abstract[o][0:10])
         print(self.data.iloc[o[0]].chapter_abstract)
@@ -58,9 +59,7 @@ class NMFAbstractsModel(AbstractModel):
                 list(self.data.iloc[o][0:self.recs].conference_name),
                 sim[o][0:self.recs]
                 ]
-        """
-        pass
-    
+            
     ##########################################
     def query_batch(self,batch):
         """
@@ -77,13 +76,12 @@ class NMFAbstractsModel(AbstractModel):
             double[]: confidence scores
         """
         
-        """
         #print(batch)
         q_v = (self.stem_vectorizer.transform(batch))
+        transformed_q_v = self.nmf.transform(q_v)
         print("Abstracts transformed.")
         print(q_v.shape)
-        #print(q_v)
-        sim = cosine_similarity(q_v,self.stem_matrix)
+        sim = cosine_similarity(transformed_q_v,self.nmf_L)
         print("Cosine similarity computed.")
         o = np.argsort(-np.array(sim))
         
@@ -103,9 +101,7 @@ class NMFAbstractsModel(AbstractModel):
         
             
         return [conference,confidence]
-        """
-        pass
-    
+        
     ##########################################
     def train(self,data):
         if not self._load_model_x():
@@ -117,13 +113,15 @@ class NMFAbstractsModel(AbstractModel):
             
             self.data = data
             self.stem_matrix = self.stem_vectorizer.fit_transform(data.chapter_abstract)
-            self._save_model_lr()
+            self._save_model_x()
             
         if not self._load_model_lr():
             print("NMF not persistent yet. Creating now.")
-            self.nmf = NMF(n_components=2, init='random', random_state=0)
+            self.nmf = NMF(n_components=2, init='random', 
+                           beta_loss = 'kullback-leibler', solver = 'mu', 
+                           random_state=0)
             self.nmf_L = self.nmf.fit_transform(self.stem_matrix)
-            self.nmf_R = self.nmf.components_[1]
+            self.nmf_R = self.nmf.components_
             self._save_model_lr()
         
     ##########################################
@@ -152,6 +150,7 @@ class NMFAbstractsModel(AbstractModel):
             print("Loading persistent models: X")
             with open(NMFAbstractsModel.persistent_file_x,"rb") as f:
                 self.stem_matrix, self.stem_vectorizer, self.data = pickle.load(f)
+                print("Loaded.")
                 return True
         
         return False
@@ -162,6 +161,7 @@ class NMFAbstractsModel(AbstractModel):
             print("Loading persistent models: LR")
             with open(NMFAbstractsModel.persistent_file_lr,"rb") as f:
                 self.nmf, self.nmf_L, self.nmf_R = pickle.load(f)
+                print("Loaded.")
                 return True
         
         return False
