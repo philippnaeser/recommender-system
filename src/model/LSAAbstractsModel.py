@@ -77,6 +77,8 @@ class LSAAbstractsModel(AbstractModel):
         transformed_q_v = (self.trsvd.transform(q_v))
         print("Abstracts transformed.")
         print(q_v.shape)
+        print(transformed_q_v.shape)
+
         sim = cosine_similarity(transformed_q_v,self.transformed_matrix)
         print("Cosine similarity computed.")
         o = np.argsort(-np.array(sim))
@@ -99,7 +101,7 @@ class LSAAbstractsModel(AbstractModel):
         return [conference,confidence]
     
    ##########################################
-    def train(self, data):
+    def train(self, data, dimensions):
         if not self._load_model_x():
             print("Stem matrix not persistent yet. Creating now.")
             for check in ["chapter_abstract","conference","conference_name"]:
@@ -112,7 +114,8 @@ class LSAAbstractsModel(AbstractModel):
             
         if not self._load_model_factors():
             print("SVD not persistent yet. Creating now.")
-            self.trsvd = TruncatedSVD(n_components=500, random_state=0)
+            self.dimensions = dimensions
+            self.trsvd = TruncatedSVD(n_components=self.dimensions, random_state=0)
             self.transformed_matrix = self.trsvd.fit_transform(self.stem_matrix)
             self._save_model_factors()
         

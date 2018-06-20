@@ -12,6 +12,8 @@ class Batchifier():
         self.recv_c, self.send = Pipe()
 
     def run(self,model,batch):
+        # return model.query_batch(batch)
+
         p = Process(target=self.f, args=(self.recv_c, self.send_c))
         p.start()
         
@@ -56,8 +58,9 @@ if __name__ == '__main__':
         d_train.make_persistent(filename)
     
     model = LSAAbstractsModel()
-    model.train(d_train.data)
-    
+    dimensions = 500
+    model.train(d_train.data, dimensions)
+     
     ### load test data if it is already pickled, otherwise create it from scratch
     
     filename = "abstracts.lsa.test.pkl"
