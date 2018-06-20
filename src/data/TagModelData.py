@@ -16,6 +16,7 @@ d.papers(["2013", "2014", "2015"]).conferences()
 chapters_conferences = d.data.loc[:, ["chapter", "conference", "conference_name"]]
 
 marketcodes = parser.getData("bookeditions#marketcodes")
+marketcode_names = parser.getData("marketcodes#name")
 all_chapters = []
 all_bookeditions = []
 all_marketcodes = []
@@ -53,18 +54,20 @@ names = []
 #Now, get the dict we want, go through all rows, get the market codes and save the respective conference names
 for row in df.itertuples():
     for code in row.marketcodes:
-        if code in tracking:
-            #Now, we don't want the same conference to show up multiple times for one tag
-            if row.conference_name in tracking[code]:
-                continue
+        ##Appearently, some codes do not exist anymore in the latest scigraph .nt files
+        if code in marketcode_names.keys():
+            if code in tracking:
+                #Now, we don't want the same conference to show up multiple times for one tag
+                if row.conference_name in tracking[code]:
+                    continue
+                else:
+                    tracking[code].append(row.conference_name)
+                    tags.append(marketcode_names[code])
+                    names.append(row.conference_name)
             else:
-                tracking[code].append(row.conference_name)
-                tags.append(code)
+                tracking[code] = [row.conference_name]
+                tags.append(marketcode_names[code])
                 names.append(row.conference_name)
-        else:
-            tracking[code] = [row.conference_name]
-            tags.append(code)
-            names.append(row.conference_name)
         
 df_tags = pd.DataFrame()
 df_tags["tag_name"] = list(tags)
@@ -103,18 +106,20 @@ names = []
 #Now, get the dict we want, go through all rows, get the market codes and save the respective conference names
 for row in df.itertuples():
     for code in row.marketcodes:
-        if code in tracking:
-            #Now, we don't want the same conference to show up multiple times for one tag
-            if row.conference_name in tracking[code]:
-                continue
+        ##Appearently, some codes do not exist anymore in the latest scigraph .nt files
+        if code in marketcode_names.keys():
+            if code in tracking:
+                #Now, we don't want the same conference to show up multiple times for one tag
+                if row.conference_name in tracking[code]:
+                    continue
+                else:
+                    tracking[code].append(row.conference_name)
+                    tags.append(marketcode_names[code])
+                    names.append(row.conference_name)
             else:
-                tracking[code].append(row.conference_name)
-                tags.append(code)
+                tracking[code] = [row.conference_name]
+                tags.append(marketcode_names[code])
                 names.append(row.conference_name)
-        else:
-            tracking[code] = [row.conference_name]
-            tags.append(code)
-            names.append(row.conference_name)
         
 df_test = pd.DataFrame()
 df_test["tag_name"] = list(tags)
