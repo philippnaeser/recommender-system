@@ -14,6 +14,8 @@ class Batchifier():
         self.recv_c, self.send = Pipe()
 
     def run(self,model,batch):
+        return model.query_batch(batch)
+        """
         p = Process(target=self.f, args=(self.recv_c, self.send_c))
         p.start()
         
@@ -25,6 +27,7 @@ class Batchifier():
         p.join()
         
         return results
+        """
 
     def f(self, recv, send):
         model, batch = recv.recv()
@@ -103,6 +106,7 @@ if __name__ == '__main__':
         results = batchifier.run(model,minibatch)
         conferences.extend(results[0])
         confidences.extend(results[1])
+        break
         
     recommendation = [conferences,confidences]
         

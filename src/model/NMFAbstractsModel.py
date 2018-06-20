@@ -48,9 +48,13 @@ class NMFAbstractsModel(AbstractModel):
         """
         
         q_v = (self.stem_vectorizer.transform([abstract]))
-        print(q_v)
         transformed_q_v = self.nmf.transform(q_v)
-        print(transformed_q_v)
+        
+        # normalize
+        row_sums = transformed_q_v.sum(axis=1)
+        row_sums = np.where(row_sums == 0, 0.00000001, row_sums)
+        transformed_q_v = transformed_q_v / row_sums[:, np.newaxis]
+        
         sim = cosine_similarity(transformed_q_v,self.nmf_L)[0]
         o = np.argsort(-sim)
         #print(self.data.chapter_abstract[o][0:10])
@@ -81,6 +85,13 @@ class NMFAbstractsModel(AbstractModel):
         transformed_q_v = self.nmf.transform(q_v)
         print("Abstracts transformed.")
         print(q_v.shape)
+        print(transformed_q_v.shape)
+        
+        # normalize
+        row_sums = transformed_q_v.sum(axis=1)
+        row_sums = np.where(row_sums == 0, 0.00000001, row_sums)
+        transformed_q_v = transformed_q_v / row_sums[:, np.newaxis]
+        
         sim = cosine_similarity(transformed_q_v,self.nmf_L)
         print("Cosine similarity computed.")
         o = np.argsort(-np.array(sim))
@@ -115,12 +126,28 @@ class NMFAbstractsModel(AbstractModel):
             self.stem_matrix = self.stem_vectorizer.fit_transform(data.chapter_abstract)
             self._save_model_x()
             
+        topics = 200
+            
         if not self._load_model_lr():
             print("NMF not persistent yet. Creating now.")
-            self.nmf = NMF(n_components=2, init='random', 
-                           beta_loss = 'kullback-leibler', solver = 'mu', 
-                           random_state=0)
+            self.nmf = NMF(
+                    n_components = topics
+                    ,init = "random"
+                    #,beta_loss = "kullback-leibler"
+                    ,beta_loss = "frobenius"
+                    #,solver = "mu"
+                    ,solver = "cd"
+                    ,random_state = 0
+                    ,verbose = True
+                    ,alpha=2
+            )
             self.nmf_L = self.nmf.fit_transform(self.stem_matrix)
+            
+            # normalize L
+            row_sums = self.nmf_L.sum(axis=1)
+            row_sums = np.where(row_sums == 0, 0.00000001, row_sums)
+            self.nmf_L = self.nmf_L / row_sums[:, np.newaxis]
+            
             self.nmf_R = self.nmf.components_
             self._save_model_lr()
         
