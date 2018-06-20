@@ -39,6 +39,7 @@ nt_language = "<http://scigraph.springernature.com/ontologies/core/language>"
 
 ## bookedition attributes
 nt_has_productmarketcode = "<http://scigraph.springernature.com/ontologies/core/hasProductMarketCode>"
+nt_marketcode_name = "<http://www.w3.org/2004/02/skos/core#prefLabel>"
 
 ## contributions attributes
 nt_publishedname = "<http://scigraph.springernature.com/ontologies/core/publishedName>"
@@ -104,6 +105,12 @@ class FileParser:
                     "filename":self.path_raw + "springernature-scigraph-books.cc-by.2017-11-07.nt",
                     "processLine":"processLineBookEditionsAttributeMarketCodes",
                     "persistentFile":self.path_persistent + "bookeditions#marketcodes.pkl",
+                    "persistentVariable":{}
+            },
+            "marketcodes#name":{
+                    "filename":self.path_raw + "springernature-scigraph-product-market-codes.cc-by.2017-11-07.nt",
+                    "processLine":"processLineMarketCodesAttributeName",
+                    "persistentFile":self.path_persistent + "marketcodes#name.pkl",
                     "persistentVariable":{}
             },
             "conferences":{
@@ -506,6 +513,14 @@ class FileParser:
                     v[line[0]] = []
                 if line[2] not in v[line[0]]:
                     v[line[0]].append(line[2])
+                    
+    def processLineMarketCodesAttributeName(self,line,v,parameters):
+        if ("@en" in line):
+            line = re.findall(self.regex, line)
+        
+            if(line[1] == nt_marketcode_name):
+                if line[0] not in v:
+                    v[line[0]] = line[2]
    
     def processLineContributions(self,line,v,parameters):
         line = line.split()
@@ -682,5 +697,7 @@ years = [
 #for y in years:
 #    parseYear(y)
     
-for y in years:
-    parser.getData("chapters_" + y + "#abstract")
+#for y in years:
+#   parser.getData("chapters_" + y + "#abstract")
+
+parser.getData("marketcodes#name")
