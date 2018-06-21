@@ -89,7 +89,7 @@ class DataLoader:
             else:
                 data = pd.concat([data,df])
         
-        data.chapter_abstract = data.chapter_abstract.str[10:-1]
+        data.chapter_abstract = data.chapter_abstract.str[9:-1]
         
         if hasattr(self,"data"):
             if "chapter" in self.data.keys():
