@@ -14,8 +14,8 @@ class Batchifier():
         self.recv_c, self.send = Pipe()
 
     def run(self,model,batch):
-        return model.query_batch(batch)
-        """
+        #return model.query_batch(batch)
+        
         p = Process(target=self.f, args=(self.recv_c, self.send_c))
         p.start()
         
@@ -27,7 +27,7 @@ class Batchifier():
         p.join()
         
         return results
-        """
+        
 
     def f(self, recv, send):
         model, batch = recv.recv()
@@ -106,7 +106,7 @@ if __name__ == '__main__':
         results = batchifier.run(model,minibatch)
         conferences.extend(results[0])
         confidences.extend(results[1])
-        break
+        #break
         
     recommendation = [conferences,confidences]
         
@@ -114,4 +114,16 @@ if __name__ == '__main__':
     print("Computing MAP.")
     from MAPEvaluation import MAPEvaluation
     evaluation = MAPEvaluation()
-    evaluation.evaluate(recommendation, truth)
+    ev_map = evaluation.evaluate(recommendation, truth)
+    
+    print("Computing Recall.")
+    from MeanRecallEvaluation import MeanRecallEvaluation
+    evaluation = MeanRecallEvaluation()
+    ev_recall = evaluation.evaluate(recommendation, truth)
+    
+    print("Computing Precision.")
+    from MeanPrecisionEvaluation import MeanPrecisionEvaluation
+    evaluation = MeanPrecisionEvaluation()
+    ev_precision = evaluation.evaluate(recommendation, truth)
+    
+    print("Recall: {}, Precision: {}, MAP: {}".format(ev_recall,ev_precision,ev_map))

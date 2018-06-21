@@ -18,8 +18,8 @@ import pickle
 
 class NMFAbstractsModel(AbstractModel):
     
-    persistent_file_x = "..\\..\\data\\processed\\abstracts.nmf.model.X.pkl"
-    persistent_file_lr = "..\\..\\data\\processed\\abstracts.nmf.model.LR.pkl"
+    persistent_file_x = os.path.join("..","..","data","processed","abstracts.nmf.model.X.pkl")
+    persistent_file_lr = os.path.join("..","..","data","processed","abstracts.nmf.model.LR.pkl")
     
     ##########################################
     def __init__(self):
@@ -126,7 +126,7 @@ class NMFAbstractsModel(AbstractModel):
             self.stem_matrix = self.stem_vectorizer.fit_transform(data.chapter_abstract)
             self._save_model_x()
             
-        topics = 200
+        topics = 300
             
         if not self._load_model_lr():
             print("NMF not persistent yet. Creating now.")
@@ -148,7 +148,7 @@ class NMFAbstractsModel(AbstractModel):
             row_sums = np.where(row_sums == 0, 0.00000001, row_sums)
             self.nmf_L = self.nmf_L / row_sums[:, np.newaxis]
             
-            self.nmf_R = self.nmf.components_
+            #self.nmf_R = self.nmf.components_
             self._save_model_lr()
         
     ##########################################
@@ -169,7 +169,7 @@ class NMFAbstractsModel(AbstractModel):
     ##########################################
     def _save_model_lr(self):
         with open(NMFAbstractsModel.persistent_file_lr,"wb") as f:
-            pickle.dump([self.nmf, self.nmf_L, self.nmf_R], f)
+            pickle.dump([self.nmf, self.nmf_L], f)
     
     ##########################################
     def _load_model_x(self):
@@ -187,7 +187,7 @@ class NMFAbstractsModel(AbstractModel):
         if os.path.isfile(NMFAbstractsModel.persistent_file_lr):
             print("Loading persistent models: LR")
             with open(NMFAbstractsModel.persistent_file_lr,"rb") as f:
-                self.nmf, self.nmf_L, self.nmf_R = pickle.load(f)
+                self.nmf, self.nmf_L = pickle.load(f)
                 print("Loaded.")
                 return True
         
