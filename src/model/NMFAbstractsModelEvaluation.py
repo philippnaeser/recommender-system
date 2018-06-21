@@ -6,6 +6,8 @@ Created on Tue May  1 14:39:50 2018
 @author: Andreea
 """
 
+import sys
+import os
 
 # query batchifier to avoid OutOfMemory exceptions
 class Batchifier():
@@ -13,13 +15,16 @@ class Batchifier():
         self.recv, self.send_c = Pipe()
         self.recv_c, self.send = Pipe()
 
-    def run(self,model,batch):
+    def run(self,batch):
+        #model = NMFAbstractsModel()
+        #model._load_model_x()
+        #model._load_model_lr()
         #return model.query_batch(batch)
         
         p = Process(target=self.f, args=(self.recv_c, self.send_c))
         p.start()
         
-        self.send.send([model,batch])
+        self.send.send(batch)
         self.send.close()
         
         results = self.recv.recv()
@@ -30,15 +35,24 @@ class Batchifier():
         
 
     def f(self, recv, send):
-        model, batch = recv.recv()
+        sys.stderr = open("debug-multiprocessing.err.txt", "w")
+        sys.stdout = open("debug-multiprocessing.out.txt", "w")
+        sys.path.insert(0, os.getcwd())
+        sys.path.insert(0, os.path.join(os.getcwd(),"..","data"))
+        
+        from NMFAbstractsModel import NMFAbstractsModel
+        model = NMFAbstractsModel()
+        model._load_model_x()
+        model._load_model_lr()
+        
+        batch = recv.recv()
         results = model.query_batch(batch)
         
         send.send(results)
         send.close()
 
 if __name__ == '__main__':
-    import sys
-    sys.path.insert(0, ".\..\data")
+    sys.path.insert(0, os.path.join(os.getcwd(),"..","data"))
     
     from NMFAbstractsModel import NMFAbstractsModel
     from DataLoader import DataLoader
@@ -103,7 +117,7 @@ if __name__ == '__main__':
         minibatch = query_test[i:(i+batchsize)]
         batchifier = Batchifier()
         print("Running minibatch [{}/{}]".format(int((i/batchsize)+1),len(minibatches)))
-        results = batchifier.run(model,minibatch)
+        results = batchifier.run(minibatch)
         conferences.extend(results[0])
         confidences.extend(results[1])
         #break
