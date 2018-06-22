@@ -18,8 +18,14 @@ import pickle
 
 class LDAAbstractsModel(AbstractModel):
     
-    persistent_file_x = os.path.join("..","..","data","processed","abstracts.lda.model.X.pkl")
-    persistent_file_factors = os.path.join("..","..","data","processed","abstracts.lda.model.factors.pkl")
+    persistent_file_x = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)),
+            "..","..","data","processed","abstracts.lda.model.X.pkl"
+    )
+    persistent_file_factors = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)),
+            "..","..","data","processed","abstracts.lda.model.factors.pkl"
+    )
     
     ##########################################
     def __init__(self,recs=10):
@@ -129,8 +135,9 @@ class LDAAbstractsModel(AbstractModel):
             self.dimensions = dimensions
             self.lda = LatentDirichletAllocation(
                     n_components=self.dimensions
-                    , learning_method = 'online'
-                    , random_state=0)
+                    ,verbose = 2
+                    ,learning_method = 'online'
+                    ,random_state=0)
             self.lda.fit(self.stem_matrix)
             self.transformed_matrix = self.lda.transform(self.stem_matrix)
             
