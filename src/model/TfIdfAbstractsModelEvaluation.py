@@ -133,4 +133,9 @@ if __name__ == '__main__':
     evaluation = MeanPrecisionEvaluation()
     ev_precision = evaluation.evaluate(recommendation, truth)
     
-    print("Recall: {}, Precision: {}, MAP: {}".format(ev_recall,ev_precision,ev_map))
+    print("Computing F1Measure.")
+    from MeanFMeasureEvaluation import MeanFMeasureEvaluation
+    evaluation = MeanFMeasureEvaluation()
+    ev_fmeasure = evaluation.evaluate(recommendation, truth, 1)
+    
+    print("Recall: {}, Precision: {}, F1Measure: {}, MAP: {}".format(ev_recall, ev_precision, ev_fmeasure, ev_map))
