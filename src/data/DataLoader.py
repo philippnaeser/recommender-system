@@ -38,6 +38,10 @@ class DataLoader:
                     list(self.parser.getData("chapters_books_" + y).items()),
                     columns=["chapter","book"]
             )
+            df_bookeditions = pd.DataFrame(
+                    list(self.parser.getData("chapters_bookeditions_" + y).items()),
+                    columns=["chapter","bookedition"]
+            )
             df_title = pd.DataFrame(
                     list(self.parser.getData("chapters_" + y + "#title").items()),
                     columns=["chapter","chapter_title"]
@@ -47,7 +51,8 @@ class DataLoader:
                     columns=["chapter","chapter_language"]
             )
             
-            df = pd.merge(df_chapters, df_title, how="left", on=["chapter", "chapter"])
+            df = pd.merge(df_chapters, df_bookeditions, how="left", on=["chapter", "chapter"])
+            df = pd.merge(df, df_title, how="left", on=["chapter", "chapter"])
             df = pd.merge(df, df_language, how="left", on=["chapter", "chapter"])
             
             if data is None:
@@ -294,6 +299,41 @@ class DataLoader:
             
         return self
     
+    
+    # load keywords
+    def keywords(self):
+        if not hasattr(self,"data"):
+            df_keywords = pd.DataFrame(
+                    list(self.parser.getData("bookeditions#marketcodes").items()),
+                    columns=["bookedition","keyword"]
+            )
+        elif "bookedition" in self.data.keys():
+            df_keywords = pd.DataFrame(
+                    list(self.parser.getData("bookeditions#marketcodes").items()),
+                    columns=["bookedition","keyword"]
+            )
+        else:
+            raise KeyError("Needs papers.")
+            
+        df_name = pd.DataFrame(
+                list(self.parser.getData("marketcodes#name").items()),
+                columns=["keyword","keyword_label"]
+        )
+                
+        df_keywords = df_keywords.set_index(["bookedition"])["keyword"].apply(pd.Series).stack()
+        df_keywords = df_keywords.reset_index()
+        df_keywords.columns = ["bookedition","keyword_num","keyword"]
+        
+        df = pd.merge(df_keywords, df_name, how="left", on=["keyword", "keyword"])
+        
+        df.keyword_label = df.keyword_label.str[1:-1]
+        
+        if hasattr(self,"data"):
+            self.data = pd.merge(self.data, df, how="left", on=["bookedition", "bookedition"])
+        else:
+            self.data = df
+            
+        return self
     
     
     def make_persistent(self, filename):
