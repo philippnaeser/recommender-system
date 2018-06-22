@@ -25,8 +25,13 @@ class MeanPrecisionEvaluation(AbstractEvaluation):
         precision = 0
         size = len(recommendation[0])
         for i in range(size):
-            q_s = set(recommendation[0][i])
-            t_s = set(truth[0][i])
-            precision += len(q_s.intersection(t_s)) / len(q_s)
+            if recommendation[0][i] == None:
+                precision += 1
+            elif truth[0][i] == None:
+                precision += 0
+            else:
+                q_s = set(recommendation[0][i])
+                t_s = set(truth[0][i])
+                precision += len(q_s.intersection(t_s)) / len(q_s)
             
         return precision/size

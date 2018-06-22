@@ -5,7 +5,8 @@ Created on Tue Apr 24 16:23:29 2018
 @author: Steff
 """
 import sys
-sys.path.insert(0, ".\..\data")
+import os
+sys.path.insert(0, os.path.join(".","..","data"))
 
 from BaselineModel import BaselineModel
 from DataLoader import DataLoader
@@ -60,32 +61,39 @@ truth = model_test.query_batch(authors)
 # add your evaluations here
 # call your file <yourname>Evaluation.py
 
-print("Computing FirstMatch.")
-from FirstMatchEvaluation import FirstMatchEvaluation
-evaluation = FirstMatchEvaluation()
-evaluation.evaluate(recommendation,truth)
+#print("Computing FirstMatch.")
+#from FirstMatchEvaluation import FirstMatchEvaluation
+#evaluation = FirstMatchEvaluation()
+#evaluation.evaluate(recommendation,truth)
 
-print("Computing recall.")
-from RecallEvaluation import RecallEvaluation
-evaluation = RecallEvaluation()
-evaluation.evaluate(recommendation,truth)
+#print("Computing recall.")
+#from RecallEvaluation import RecallEvaluation
+#evaluation = RecallEvaluation()
+#evaluation.evaluate(recommendation,truth)
 
-print("Computing precision.")
-from PrecisionEvaluation import PrecisionEvaluation
-evaluation = PrecisionEvaluation()
-evaluation.evaluate(recommendation,truth)
+#print("Computing precision.")
+#from PrecisionEvaluation import PrecisionEvaluation
+#evaluation = PrecisionEvaluation()
+#evaluation.evaluate(recommendation,truth)
 
-print("Computing F-measure.")
-from FMeasureEvaluation import FMeasureEvaluation
-evaluation = FMeasureEvaluation()
-evaluation.evaluate(recommendation,truth, 1)
+#print("Computing F-measure.")
+#from FMeasureEvaluation import FMeasureEvaluation
+#evaluation = FMeasureEvaluation()
+#evaluation.evaluate(recommendation,truth, 1)
 
 print("Computing MAP.")
 from MAPEvaluation import MAPEvaluation
 evaluation = MAPEvaluation()
-evaluation.evaluate(recommendation, truth)
+ev_map = evaluation.evaluate(recommendation, truth)
 
+print("Computing Recall.")
+from MeanRecallEvaluation import MeanRecallEvaluation
+evaluation = MeanRecallEvaluation()
+ev_recall = evaluation.evaluate(recommendation, truth)
 
-# from ...Evaluation import ...Evaluation
-#evaluation = ...Evaluation()
-#evaluation.evaluate(recommendation,truth)
+print("Computing Precision.")
+from MeanPrecisionEvaluation import MeanPrecisionEvaluation
+evaluation = MeanPrecisionEvaluation()
+ev_precision = evaluation.evaluate(recommendation, truth)
+
+print("Recall: {}, Precision: {}, MAP: {}".format(ev_recall,ev_precision,ev_map))
