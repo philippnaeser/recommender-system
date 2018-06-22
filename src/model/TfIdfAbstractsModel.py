@@ -16,7 +16,7 @@ import pickle
 
 class TfIdfAbstractsModel(AbstractModel):
     
-    persistent_file = "..\\..\\data\\processed\\abstracts.tfidf.model.pkl"
+    persistent_file = os.path.join("..","..","data","processed","abstracts.tfidf.model.pkl")
     
     ##########################################
     def __init__(self,recs=10):

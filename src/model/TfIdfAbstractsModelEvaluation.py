@@ -5,17 +5,20 @@ Created on Tue May  1 14:39:50 2018
 @author: Steff
 """
 
+import os
+import sys
+
 # query batchifier to avoid OutOfMemory exceptions
 class Batchifier():
     def __init__(self):
         self.recv, self.send_c = Pipe()
         self.recv_c, self.send = Pipe()
 
-    def run(self,model,batch):
+    def run(self,batch):
         p = Process(target=self.f, args=(self.recv_c, self.send_c))
         p.start()
         
-        self.send.send([model,batch])
+        self.send.send(batch)
         self.send.close()
         
         results = self.recv.recv()
@@ -25,15 +28,23 @@ class Batchifier():
         return results
 
     def f(self, recv, send):
-        model, batch = recv.recv()
+        sys.stderr = open("debug-multiprocessing.err.txt", "w")
+        sys.stdout = open("debug-multiprocessing.out.txt", "w")
+        sys.path.insert(0, os.getcwd())
+        sys.path.insert(0, os.path.join(os.getcwd(),"..","data"))
+        
+        from TfIdfAbstractsModel import TfIdfAbstractsModel
+        model = TfIdfAbstractsModel()
+        model._load_model()
+        
+        batch = recv.recv()
         results = model.query_batch(batch)
         
         send.send(results)
         send.close()
 
 if __name__ == '__main__':
-    import sys
-    sys.path.insert(0, ".\..\data")
+    sys.path.insert(0, os.path.join(os.getcwd(),"..","data"))
     
     from TfIdfAbstractsModel import TfIdfAbstractsModel
     from DataLoader import DataLoader
@@ -98,7 +109,7 @@ if __name__ == '__main__':
         minibatch = query_test[i:(i+batchsize)]
         batchifier = Batchifier()
         print("Running minibatch [{}/{}]".format(int((i/batchsize)+1),len(minibatches)))
-        results = batchifier.run(model,minibatch)
+        results = batchifier.run(minibatch)
         #results = model.query_batch(minibatch)
         conferences.extend(results[0])
         confidences.extend(results[1])
@@ -110,4 +121,16 @@ if __name__ == '__main__':
     print("Computing MAP.")
     from MAPEvaluation import MAPEvaluation
     evaluation = MAPEvaluation()
-    evaluation.evaluate(recommendation, truth)
+    ev_map = evaluation.evaluate(recommendation, truth)
+    
+    print("Computing Recall.")
+    from MeanRecallEvaluation import MeanRecallEvaluation
+    evaluation = MeanRecallEvaluation()
+    ev_recall = evaluation.evaluate(recommendation, truth)
+    
+    print("Computing Precision.")
+    from MeanPrecisionEvaluation import MeanPrecisionEvaluation
+    evaluation = MeanPrecisionEvaluation()
+    ev_precision = evaluation.evaluate(recommendation, truth)
+    
+    print("Recall: {}, Precision: {}, MAP: {}".format(ev_recall,ev_precision,ev_map))
