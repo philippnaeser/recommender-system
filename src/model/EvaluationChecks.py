@@ -43,6 +43,16 @@ truth = [[
 # 1.0
 # = 3.33/6 = 0.556
 
+# MeanF1Measure:
+# ---------
+# 0.5
+# 0.0
+# 0.66
+# 0.5
+# 0.66
+# 0.66
+# = 3/6 = 0.5
+
 # MAP:
 # ---------
 # 0.5
@@ -63,9 +73,14 @@ from MeanPrecisionEvaluation import MeanPrecisionEvaluation
 evaluation = MeanPrecisionEvaluation()
 ev_precision = round(evaluation.evaluate(query, truth),3)
 
+print("Computing F1Measure.")
+from MeanFMeasureEvaluation import MeanFMeasureEvaluation
+evaluation = MeanFMeasureEvaluation()
+ev_fmeasure = round(evaluation.evaluate(query, truth, 1),3)
+
 print("Computing MAP.")
 from MAPEvaluation import MAPEvaluation
 evaluation = MAPEvaluation()
 ev_map = evaluation.evaluate(query, truth)
 
-print("Recall: {}, Precision: {}, MAP: {}".format(ev_recall,ev_precision,ev_map))
+print("Recall: {}, Precision: {}, F1Measure: {}, MAP: {}".format(ev_recall,ev_precision, ev_fmeasure, ev_map))
