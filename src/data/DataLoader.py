@@ -8,16 +8,19 @@ Created on Fri Apr 20 23:57:37 2018
 import FileParser
 import pandas as pd
 import pickle
+import os
 
 class DataLoader:
     
-    path = "..\\..\\data\\processed\\"
+    path = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)),
+            "..","..","data","processed"
+    )
     
     #path = FileParser.FileParser.path_persistent
     
     def __init__(self):
         self.parser = FileParser.FileParser()
-
       
     # add papers
     def papers(self, years=None):
@@ -294,7 +297,7 @@ class DataLoader:
     
     
     def make_persistent(self, filename):
-        file = self.path + "\\" + filename
+        file = os.path.join(self.path,filename)
         with open(file,"wb") as f:
             pickle.dump(self.data, f)
     
@@ -302,7 +305,7 @@ class DataLoader:
     
     def get_persistent(self, filename):
         try:
-            file = self.path + "\\" + filename
+            file = os.path.join(self.path,filename)
             with open(file,"rb") as f:
                 self.data = pickle.load(f)
                 return True

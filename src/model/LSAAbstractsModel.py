@@ -18,8 +18,14 @@ import pickle
 
 class LSAAbstractsModel(AbstractModel):
     
-    persistent_file_x = os.path.join("..","..","data","processed","abstracts.lsa.model.X.pkl")
-    persistent_file_factors = os.path.join("..","..","data","processed","abstracts.lsa.model.factors.pkl")
+    persistent_file_x = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)),
+            "..","..","data","processed","abstracts.lsa.model.X.pkl"
+    )
+    persistent_file_factors = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)),
+            "..","..","data","processed","abstracts.lsa.model.factors.pkl"
+    )
     
     ##########################################
     def __init__(self,recs=10):

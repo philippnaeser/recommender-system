@@ -5,18 +5,19 @@
 
 from TagModel import TagModel
 import pandas as pd
+import os
 
 """
     Prepare the data for the evaluation.
 """
 #Training part
-data_train = pd.read_csv("..\\..\\data\\processed\\tags.csv")
+data_train = pd.read_csv(os.path.join("..","..","data","processed","tags.csv"))
 
 model = TagModel()
 model.train(data_train)
 
 
-data_test = pd.read_csv("..\\..\\data\\processed\\tags_test.csv")
+data_test = pd.read_csv(os.path.join("..","..","data","processed","tags_test.csv"))
 model_test = TagModel()
 model_test.train(data_test)
 
@@ -49,4 +50,16 @@ evaluation.evaluate(recommendation,truth, 1)
 print("Computing MAP.")
 from MAPEvaluation import MAPEvaluation
 evaluation = MAPEvaluation()
-evaluation.evaluate(recommendation, truth)
+ev_map = evaluation.evaluate(recommendation, truth)
+
+print("Computing Recall.")
+from MeanRecallEvaluation import MeanRecallEvaluation
+evaluation = MeanRecallEvaluation()
+ev_recall = evaluation.evaluate(recommendation, truth)
+
+print("Computing Precision.")
+from MeanPrecisionEvaluation import MeanPrecisionEvaluation
+evaluation = MeanPrecisionEvaluation()
+ev_precision = evaluation.evaluate(recommendation, truth)
+
+print("Recall: {}, Precision: {}, MAP: {}".format(ev_recall,ev_precision,ev_map))

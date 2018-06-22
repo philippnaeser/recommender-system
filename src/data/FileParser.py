@@ -58,10 +58,14 @@ nt_has_conference_series = "<http://scigraph.springernature.com/ontologies/core/
 class FileParser:
     regex = '([<"].*?[>"])+?'
     
-    #path_raw = "..\\..\\data\\raw\\"
-    path_raw = "../../data/raw/"
-    #path_persistent = "..\\..\\data\\interim\\parser\\"
-    path_persistent = "../../data/interim/parser/"
+    path_raw = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)),
+            "..","..","data","raw"
+    )
+    path_persistent = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)),
+            "..","..","data","interim","parser"
+    )
     
     years = list(range(2011,2018)) + [
                 "2009-2010",
@@ -84,99 +88,99 @@ class FileParser:
             "books":{
                     "filename":self.path_raw + "springernature-scigraph-books.cc-by.2017-11-07.nt",
                     "processLine":"processLineBooks",
-                    "persistentFile":self.path_persistent + "books.pkl",
+                    "persistentFile":os.path.join(self.path_persistent,"books.pkl"),
                     "persistentVariable":[]
             },
             "books_conferences":{
                     "filename":self.path_raw + "springernature-scigraph-books.cc-by.2017-11-07.nt",
                     "processLine":"processLineBooksConferences",
-                    "persistentFile":self.path_persistent + "books_conferences.pkl",
+                    "persistentFile":os.path.join(self.path_persistent,"books_conferences.pkl"),
                     "persistentVariable":{}
             },
             ### bookeditions
             "bookeditions":{
                     "filename":self.path_raw + "springernature-scigraph-books.cc-by.2017-11-07.nt",
                     "processLine":"processLineBookEditions",
-                    "persistentFile":self.path_persistent + "bookeditions.pkl",
+                    "persistentFile":os.path.join(self.path_persistent,"bookeditions.pkl"),
                     "persistentVariable":[]
             },
             ### bookeditions#marketcodes
             "bookeditions#marketcodes":{
                     "filename":self.path_raw + "springernature-scigraph-books.cc-by.2017-11-07.nt",
                     "processLine":"processLineBookEditionsAttributeMarketCodes",
-                    "persistentFile":self.path_persistent + "bookeditions#marketcodes.pkl",
+                    "persistentFile":os.path.join(self.path_persistent,"bookeditions#marketcodes.pkl"),
                     "persistentVariable":{}
             },
             "marketcodes#name":{
                     "filename":self.path_raw + "springernature-scigraph-product-market-codes.cc-by.2017-11-07.nt",
                     "processLine":"processLineMarketCodesAttributeName",
-                    "persistentFile":self.path_persistent + "marketcodes#name.pkl",
+                    "persistentFile":os.path.join(self.path_persistent,"marketcodes#name.pkl"),
                     "persistentVariable":{}
             },
             "conferences":{
                     "filename":self.path_raw + "springernature-scigraph-conferences.cc-zero.2017-11-07-UPDATED.nt",
                     "processLine":"processLineConferences",
-                    "persistentFile":self.path_persistent + "conferences.pkl",
+                    "persistentFile":os.path.join(self.path_persistent,"conferences.pkl"),
                     "persistentVariable":[]
             },
             "conferences#name":{
                     "filename":self.path_raw + "springernature-scigraph-conferences.cc-zero.2017-11-07-UPDATED.nt",
                     "processLine":"processLineConferencesAttributeName",
-                    "persistentFile":self.path_persistent + "conferences#name.pkl",
+                    "persistentFile":os.path.join(self.path_persistent,"conferences#name.pkl"),
                     "persistentVariable":{}
             },
             "conferences#acronym":{
                     "filename":self.path_raw + "springernature-scigraph-conferences.cc-zero.2017-11-07-UPDATED.nt",
                     "processLine":"processLineConferencesAttributeAcronym",
-                    "persistentFile":self.path_persistent + "conferences#acronym.pkl",
+                    "persistentFile":os.path.join(self.path_persistent,"conferences#acronym.pkl"),
                     "persistentVariable":{}
             },
             "conferences#city":{
                     "filename":self.path_raw + "springernature-scigraph-conferences.cc-zero.2017-11-07-UPDATED.nt",
                     "processLine":"processLineConferencesAttributeCity",
-                    "persistentFile":self.path_persistent + "conferences#city.pkl",
+                    "persistentFile":os.path.join(self.path_persistent,"conferences#city.pkl"),
                     "persistentVariable":{}
             },
             "conferences#country":{
                     "filename":self.path_raw + "springernature-scigraph-conferences.cc-zero.2017-11-07-UPDATED.nt",
                     "processLine":"processLineConferencesAttributeCountry",
-                    "persistentFile":self.path_persistent + "conferences#country.pkl",
+                    "persistentFile":os.path.join(self.path_persistent,"conferences#country.pkl"),
                     "persistentVariable":{}
             },
             "conferences#dateend":{
                     "filename":self.path_raw + "springernature-scigraph-conferences.cc-zero.2017-11-07-UPDATED.nt",
                     "processLine":"processLineConferencesAttributeDateEnd",
-                    "persistentFile":self.path_persistent + "conferences#dateend.pkl",
+                    "persistentFile":os.path.join(self.path_persistent,"conferences#dateend.pkl"),
                     "persistentVariable":{}
             },
             "conferences#datestart":{
                     "filename":self.path_raw + "springernature-scigraph-conferences.cc-zero.2017-11-07-UPDATED.nt",
                     "processLine":"processLineConferencesAttributeDateStart",
-                    "persistentFile":self.path_persistent + "conferences#datestart.pkl",
+                    "persistentFile":os.path.join(self.path_persistent,"conferences#datestart.pkl"),
                     "persistentVariable":{}
             },
             "conferences#year":{
                     "filename":self.path_raw + "springernature-scigraph-conferences.cc-zero.2017-11-07-UPDATED.nt",
                     "processLine":"processLineConferencesAttributeYear",
-                    "persistentFile":self.path_persistent + "conferences#year.pkl",
+                    "persistentFile":os.path.join(self.path_persistent,"conferences#year.pkl"),
                     "persistentVariable":{}
             },
             "conferenceseries":{
                     "filename":self.path_raw + "springernature-scigraph-conferences.cc-zero.2017-11-07-UPDATED.nt",
                     "processLine":"processLineConferenceseries",
-                    "persistentFile":self.path_persistent + "conferenceseries.pkl",
+                    "persistentFile":os.path.join(self.path_persistent,"conferenceseries.pkl"),
                     "persistentVariable":[]
             },
             "conferenceseries#name":{
                     "filename":self.path_raw + "springernature-scigraph-conferences.cc-zero.2017-11-07-UPDATED.nt",
                     "processLine":"processLineConferenceseriesAttributeName",
-                    "persistentFile":self.path_persistent + "conferenceseries#name.pkl",
+                    "persistentFile":os.path.join(self.path_persistent,"conferenceseries#name.pkl"),
                     "persistentVariable":{}
             },
             "conferences_conferenceseries":{
                     "filename":self.path_raw + "springernature-scigraph-conferences.cc-zero.2017-11-07-UPDATED.nt",
                     "processLine":"processLineConferencesConferenceseries",
-                    "persistentFile":self.path_persistent + "conferences_conferenceseries.pkl",
+                    "persistentFile":os.path.join(self.path_persistent,"conferences_conferenceseries.pkl"),
                     "persistentVariable":{}
             }
         }
@@ -188,14 +192,14 @@ class FileParser:
             self.processes["chapters_" + year] = {
                 "filename":self.path_raw + "springernature-scigraph-book-chapters-" + year + ".cc-by.2017-11-07.nt",
                 "processLine":"processLineChapters",
-                "persistentFile":self.path_persistent + "chapters_" + year + ".pkl",
+                "persistentFile":os.path.join(self.path_persistent,"chapters_" + year + ".pkl"),
                 "persistentVariable":[]
             }
             ### chapters#abstract
             self.processes["chapters_" + year + "#abstract"] = {
                 "filename":self.path_raw + "springernature-scigraph-book-chapters-" + year + ".cc-by-nc.2017-11-07.nt",
                 "processLine":"processLineChaptersAttributeAbstract",
-                "persistentFile":self.path_persistent + "chapters_" + year + "#abstract.pkl",
+                "persistentFile":os.path.join(self.path_persistent,"chapters_" + year + "#abstract.pkl"),
                 "persistentVariable":{},
                 "parameters":"chapters_" + year
             }
@@ -203,7 +207,7 @@ class FileParser:
             self.processes["chapters_" + year + "#title"] = {
                 "filename":self.path_raw + "springernature-scigraph-book-chapters-" + year + ".cc-by.2017-11-07.nt",
                 "processLine":"processLineChaptersAttributeTitle",
-                "persistentFile":self.path_persistent + "chapters_" + year + "#title.pkl",
+                "persistentFile":os.path.join(self.path_persistent,"chapters_" + year + "#title.pkl"),
                 "persistentVariable":{},
                 "parameters":"chapters_" + year
             }
@@ -211,7 +215,7 @@ class FileParser:
             self.processes["chapters_" + year + "#language"] = {
                 "filename":self.path_raw + "springernature-scigraph-book-chapters-" + year + ".cc-by.2017-11-07.nt",
                 "processLine":"processLineChaptersAttributeLanguage",
-                "persistentFile":self.path_persistent + "chapters_" + year + "#language.pkl",
+                "persistentFile":os.path.join(self.path_persistent,"chapters_" + year + "#language.pkl"),
                 "persistentVariable":{},
                 "parameters":"chapters_" + year
             }
@@ -219,14 +223,14 @@ class FileParser:
             self.processes["chapters_books_" + year] = {
                 "filename":self.path_raw + "springernature-scigraph-book-chapters-" + year + ".cc-by.2017-11-07.nt",
                 "processLine":"processLineChaptersBooks",
-                "persistentFile":self.path_persistent + "chapters_books_" + year + ".pkl",
+                "persistentFile":os.path.join(self.path_persistent,"chapters_books_" + year + ".pkl"),
                 "persistentVariable":{}
             }
             ### chapters_bookeditions
             self.processes["chapters_bookeditions_" + year] = {
                 "filename":self.path_raw + "springernature-scigraph-book-chapters-" + year + ".cc-by.2017-11-07.nt",
                 "processLine":"processLineChaptersBookEditions",
-                "persistentFile":self.path_persistent + "chapters_bookeditions_" + year + ".pkl",
+                "persistentFile":os.path.join(self.path_persistent,"chapters_bookeditions_" + year + ".pkl"),
                 "persistentVariable":{},
                 "parameters":"chapters_" + year
             }
@@ -234,7 +238,7 @@ class FileParser:
             self.processes["contributions_" + year] = {
                 "filename":self.path_raw + "springernature-scigraph-book-chapters-" + year + ".cc-by.2017-11-07.nt",
                 "processLine":"processLineContributions",
-                "persistentFile":self.path_persistent + "contributions_" + year + ".pkl",
+                "persistentFile":os.path.join(self.path_persistent,"contributions_" + year + ".pkl"),
                 "persistentVariable":[],
                 "parameters":"chapters_" + year
             }
@@ -242,7 +246,7 @@ class FileParser:
             self.processes["contributions_" + year + "#publishedName"] = {
                 "filename":self.path_raw + "springernature-scigraph-book-chapters-" + year + ".cc-by.2017-11-07.nt",
                 "processLine":"processLineContributionsAttributePublishedName",
-                "persistentFile":self.path_persistent + "contributions_" + year + "#publishedName.pkl",
+                "persistentFile":os.path.join(self.path_persistent,"contributions_" + year + "#publishedName.pkl"),
                 "persistentVariable":{},
                 "parameters":"contributions_" + year
             }
@@ -250,7 +254,7 @@ class FileParser:
             self.processes["contributions_" + year + "#isCorresponding"] = {
                 "filename":self.path_raw + "springernature-scigraph-book-chapters-" + year + ".cc-by.2017-11-07.nt",
                 "processLine":"processLineContributionsAttributeIsCorresponding",
-                "persistentFile":self.path_persistent + "contributions_" + year + "#isCorresponding.pkl",
+                "persistentFile":os.path.join(self.path_persistent,"contributions_" + year + "#isCorresponding.pkl"),
                 "persistentVariable":{},
                 "parameters":"contributions_" + year
             }
@@ -258,7 +262,7 @@ class FileParser:
             self.processes["contributions_" + year + "#order"] = {
                 "filename":self.path_raw + "springernature-scigraph-book-chapters-" + year + ".cc-by.2017-11-07.nt",
                 "processLine":"processLineContributionsAttributeOrder",
-                "persistentFile":self.path_persistent + "contributions_" + year + "#order.pkl",
+                "persistentFile":os.path.join(self.path_persistent,"contributions_" + year + "#order.pkl"),
                 "persistentVariable":{},
                 "parameters":"contributions_" + year
             }
@@ -266,7 +270,7 @@ class FileParser:
             self.processes["contributions_chapters_" + year] = {
                 "filename":self.path_raw + "springernature-scigraph-book-chapters-" + year + ".cc-by.2017-11-07.nt",
                 "processLine":"processLineContributionsChapters",
-                "persistentFile":self.path_persistent + "contributions_chapters_" + year + ".pkl",
+                "persistentFile":os.path.join(self.path_persistent,"contributions_chapters_" + year + ".pkl"),
                 "persistentVariable":{},
                 "parameters":"chapters_" + year
         }
