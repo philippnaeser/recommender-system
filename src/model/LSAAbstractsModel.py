@@ -3,6 +3,7 @@
 Created on Fri May 25 16:10:43 2018
 
 @author: Andreea
+@author: Steff
 """
 
 from AbstractClasses import AbstractModel 
@@ -17,11 +18,11 @@ import pickle
 
 class LSAAbstractsModel(AbstractModel):
     
-    persistent_file_x = "..\\..\\data\\processed\\abstracts.lsa.model.X.pkl"
-    persistent_file_factors = "..\\..\\data\\processed\\abstracts.lsa.model.factors.pkl"
+    persistent_file_x = os.path.join("..","..","data","processed","abstracts.lsa.model.X.pkl")
+    persistent_file_factors = os.path.join("..","..","data","processed","abstracts.lsa.model.factors.pkl")
     
     ##########################################
-    def __init__(self):
+    def __init__(self,recs=10):
         self.stemmer = PorterStemmer()
         self.token_pattern = re.compile(r"(?u)\b\w\w+\b")
         self.stem_vectorizer = TfidfVectorizer(
@@ -31,7 +32,7 @@ class LSAAbstractsModel(AbstractModel):
                 #,max_df=0.8
         )
         # number of recommendations to return
-        self.recs = 10
+        self.recs = recs
     
     ##########################################
     def query_single(self,abstract):
