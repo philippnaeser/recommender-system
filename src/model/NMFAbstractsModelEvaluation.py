@@ -75,7 +75,7 @@ if __name__ == '__main__':
         d_train.make_persistent(filename)
     
     model = NMFAbstractsModel()
-    model.train(d_train.data)
+    model.train(d_train.data,500,2)
     
     ### load test data if it is already pickled, otherwise create it from scratch
     

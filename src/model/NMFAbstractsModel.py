@@ -114,7 +114,7 @@ class NMFAbstractsModel(AbstractModel):
         return [conference,confidence]
         
     ##########################################
-    def train(self,data):
+    def train(self,data,topics=100,alpha=2):
         if not self._load_model_x():
             print("Stem matrix not persistent yet. Creating now.")
             #for check in ["abstract","conference","conference_name"]:
@@ -125,9 +125,7 @@ class NMFAbstractsModel(AbstractModel):
             self.data = data
             self.stem_matrix = self.stem_vectorizer.fit_transform(data.chapter_abstract)
             self._save_model_x()
-            
-        topics = 300
-            
+                     
         if not self._load_model_lr():
             print("NMF not persistent yet. Creating now.")
             self.nmf = NMF(
@@ -139,7 +137,7 @@ class NMFAbstractsModel(AbstractModel):
                     ,solver = "cd"
                     ,random_state = 0
                     ,verbose = True
-                    ,alpha=2
+                    ,alpha=alpha
             )
             self.nmf_L = self.nmf.fit_transform(self.stem_matrix)
             
