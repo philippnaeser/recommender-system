@@ -25,8 +25,13 @@ class MeanRecallEvaluation(AbstractEvaluation):
         recall = 0
         size = len(recommendation[0])
         for i in range(size):
-            q_s = set(recommendation[0][i])
-            t_s = set(truth[0][i])
-            recall += len(q_s.intersection(t_s)) / len(t_s)
+            if truth[0][i] is None:
+                recall += 1
+            elif recommendation[0][i] is None:
+                recall += 0
+            else:
+                q_s = set(recommendation[0][i])
+                t_s = set(truth[0][i])
+                recall += len(q_s.intersection(t_s)) / len(t_s)
             
         return recall/size
