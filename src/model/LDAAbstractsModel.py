@@ -5,7 +5,6 @@ Created on Wed Jun 20 14:17:57 2018
 @author: Andreea
 """
 
-
 from AbstractClasses import AbstractModel 
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -15,6 +14,14 @@ from sklearn.decomposition import LatentDirichletAllocation
 import re
 import os
 import pickle
+
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Jun 20 14:17:57 2018
+
+@author: Andreea
+"""
+
 
 class LDAAbstractsModel(AbstractModel):
     
@@ -34,8 +41,9 @@ class LDAAbstractsModel(AbstractModel):
         self.stem_vectorizer = TfidfVectorizer(
                 tokenizer=self
                 ,stop_words="english"
-                #,min_df=0.05
-                #,max_df=0.8
+                ,strip_accents = "unicode"
+                ,min_df=10
+                ,max_df=0.6
         )
         # number of recommendations to return
         self.recs = recs
@@ -55,12 +63,7 @@ class LDAAbstractsModel(AbstractModel):
         
         q_v = (self.stem_vectorizer.transform([abstract]))
         transformed_q_v = (self.lda.transform(q_v))
-        
-        # normalize
-        row_sums = transformed_q_v.sum(axis=1)
-        row_sums = np.where(row_sums == 0, 0.00000001, row_sums)
-        transformed_q_v = transformed_q_v / row_sums[:, np.newaxis]
-        
+
         sim = cosine_similarity(transformed_q_v,self.transformed_matrix)[0]
         o = np.argsort(-sim)
         print(self.data.iloc[o[0]].chapter_abstract)
@@ -69,7 +72,7 @@ class LDAAbstractsModel(AbstractModel):
                 sim[o][0:self.recs]
                 ]
     
-    ##########################################
+    ########################################## 
     def query_batch(self,batch):
         """
         Queries the model and returns a list of recommendations for each request.
@@ -92,13 +95,7 @@ class LDAAbstractsModel(AbstractModel):
         print(q_v.shape)
         print(transformed_q_v.shape)
         
-        # normalize
-        row_sums = transformed_q_v.sum(axis=1)
-        row_sums = np.where(row_sums == 0, 0.00000001, row_sums)
-        transformed_q_v = transformed_q_v / row_sums[:, np.newaxis]
-
         sim = cosine_similarity(transformed_q_v, self.transformed_matrix)
-        print("Cosine similarity computed.")
         o = np.argsort(-np.array(sim))
         
         conference = list()
@@ -127,7 +124,7 @@ class LDAAbstractsModel(AbstractModel):
                     raise IndexError("Column '{}' not contained in given DataFrame.".format(check))
             
             self.data = data
-            self.stem_matrix = self.stem_vectorizer.fit_transform(data.chapter_abstract)
+            self.stem_matrix = self.stem_vectorizer.fit_transform(data.chapter_abstract.str.decode("unicode_escape"))
             self._save_model_x()
             
         if not self._load_model_factors():
@@ -135,17 +132,11 @@ class LDAAbstractsModel(AbstractModel):
             self.dimensions = dimensions
             self.lda = LatentDirichletAllocation(
                     n_components=self.dimensions
-                    ,verbose = 2
+                    ,verbose = 1
                     ,learning_method = 'online'
                     ,random_state=0)
             self.lda.fit(self.stem_matrix)
             self.transformed_matrix = self.lda.transform(self.stem_matrix)
-            
-            # normalize the transformed matrix
-            row_sums = self.transformed_matrix.sum(axis=1)
-            row_sums = np.where(row_sums == 0, 0.00000001, row_sums)
-            self.transformed_matrix = self.transformed_matrix / row_sums[:, np.newaxis]
-            
             
             self._save_model_factors()
         
