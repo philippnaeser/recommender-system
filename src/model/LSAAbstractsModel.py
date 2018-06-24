@@ -34,6 +34,7 @@ class LSAAbstractsModel(AbstractModel):
         self.stem_vectorizer = TfidfVectorizer(
                 tokenizer=self
                 ,stop_words="english"
+                ,strip_accents = "unicode"
                 #,min_df=0.05
                 #,max_df=0.8
         )
@@ -116,7 +117,7 @@ class LSAAbstractsModel(AbstractModel):
                     raise IndexError("Column '{}' not contained in given DataFrame.".format(check))
             
             self.data = data
-            self.stem_matrix = self.stem_vectorizer.fit_transform(data.chapter_abstract)
+            self.stem_matrix = self.stem_vectorizer.fit_transform(data.chapter_abstract.str.decode("unicode_escape"))
             self._save_model_x()
             
         if not self._load_model_factors():
