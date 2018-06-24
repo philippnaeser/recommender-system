@@ -25,8 +25,8 @@ class TfIdfAbstractsModel(AbstractModel):
         self.stem_vectorizer = TfidfVectorizer(
                 tokenizer=self
                 ,stop_words="english"
-                #,min_df=0.01
-                #,max_df=0.8
+                #,min_df=10
+                #,max_df=0.6
         )
         # number of recommendations to return
         self.recs = recs
@@ -104,7 +104,7 @@ class TfIdfAbstractsModel(AbstractModel):
                     raise IndexError("Column '{}' not contained in given DataFrame.".format(check))
             
             self.data = data
-            self.stem_matrix = self.stem_vectorizer.fit_transform(data.chapter_abstract)
+            self.stem_matrix = self.stem_vectorizer.fit_transform(data.chapter_abstract.str.decode("unicode_escape"))
             self._save_model()
             #print(self.stem_matrix)
         
