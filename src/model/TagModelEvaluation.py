@@ -34,7 +34,7 @@ model_test = TagModel()
 model_test.train(data_test)
 
 
-tags = list(model_test.get_tag_names(count=0))
+tags = list(data_test.tag_name)
 print("Getting recommendations.")
 recommendation = model.query_batch(tags)
 print("Getting truth values.")
