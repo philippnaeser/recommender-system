@@ -5,21 +5,34 @@
 
 from TagModel import TagModel
 import pandas as pd
+import sys
 import os
+sys.path.insert(0, os.path.join(".","..","data"))
+from DataLoader import DataLoader
 
 """
     Prepare the data for the evaluation.
 """
 #Training part
-data_train = pd.read_csv(os.path.join("..","..","data","processed","tags.csv"))
+d = DataLoader()
+d.papers(["2013","2014","2015"]).conferences().keywords().abstracts()
+
+data_train = d.data.loc[:, ["conference_name", "keyword_label"]]
+data_train.columns = ["conference_name", "tag_name"]
 
 model = TagModel()
 model.train(data_train)
 
+#Test Part
+d = DataLoader()
+d.papers(["2016"]).conferences().keywords().abstracts()
 
-data_test = pd.read_csv(os.path.join("..","..","data","processed","tags_test.csv"))
+data_test = d.data.loc[:, ["conference_name", "keyword_label"]]
+data_test.columns = ["conference_name", "tag_name"]
+
 model_test = TagModel()
 model_test.train(data_test)
+
 
 tags = list(model_test.get_tag_names(count=0))
 print("Getting recommendations.")
@@ -35,17 +48,17 @@ evaluation.evaluate(recommendation,truth)
 print("Computing recall.")
 from RecallEvaluation import RecallEvaluation
 evaluation = RecallEvaluation()
-evaluation.evaluate(recommendation,truth)
+ev_recall = evaluation.evaluate(recommendation,truth)
 
 print("Computing precision.")
 from PrecisionEvaluation import PrecisionEvaluation
 evaluation = PrecisionEvaluation()
-evaluation.evaluate(recommendation,truth)
+ev_precision = evaluation.evaluate(recommendation,truth)
 
 print("Computing F-measure.")
 from FMeasureEvaluation import FMeasureEvaluation
 evaluation = FMeasureEvaluation()
-evaluation.evaluate(recommendation,truth, 1)
+ev_f1 = evaluation.evaluate(recommendation,truth, 1)
 
 print("Computing MAP.")
 from MAPEvaluation import MAPEvaluation
@@ -55,11 +68,11 @@ ev_map = evaluation.evaluate(recommendation, truth)
 print("Computing Recall.")
 from MeanRecallEvaluation import MeanRecallEvaluation
 evaluation = MeanRecallEvaluation()
-ev_recall = evaluation.evaluate(recommendation, truth)
+ev_mean_recall = evaluation.evaluate(recommendation, truth)
 
 print("Computing Precision.")
 from MeanPrecisionEvaluation import MeanPrecisionEvaluation
 evaluation = MeanPrecisionEvaluation()
-ev_precision = evaluation.evaluate(recommendation, truth)
+ev_mean_precision = evaluation.evaluate(recommendation, truth)
 
-print("Recall: {}, Precision: {}, MAP: {}".format(ev_recall,ev_precision,ev_map))
+print("Recall: {}, Precision: {}, F1: {}, MAP: {}, Mean_Recall: {}, Mean_Precision: {}".format(ev_recall,ev_precision,ev_f1,ev_map,ev_mean_recall,ev_mean_precision))
