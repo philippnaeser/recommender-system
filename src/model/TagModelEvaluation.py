@@ -15,7 +15,7 @@ from DataLoader import DataLoader
 """
 #Training part
 d = DataLoader()
-d.papers(["2013","2014","2015"]).conferences().keywords().abstracts()
+d.papers(["2013","2014","2015"]).conferences().keywords()
 
 data_train = d.data.loc[:, ["conference_name", "keyword_label"]]
 data_train.columns = ["conference_name", "tag_name"]
@@ -25,7 +25,7 @@ model.train(data_train)
 
 #Test Part
 d = DataLoader()
-d.papers(["2016"]).conferences().keywords().abstracts()
+d.papers(["2016"]).conferences().keywords()
 
 data_test = d.data.loc[:, ["conference_name", "keyword_label"]]
 data_test.columns = ["conference_name", "tag_name"]
