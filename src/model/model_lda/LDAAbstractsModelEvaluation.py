@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue May  1 14:39:50 2018
+Created on Wed Jun 20 14:18:11 2018
 
-@author: Steff
 @author: Andreea
 """
 
-import sys
 import os
+import sys
+sys.path.insert(0, os.path.join(os.getcwd(),"..","data"))
+
 
 # query batchifier to avoid OutOfMemory exceptions
 class Batchifier():
@@ -16,11 +17,8 @@ class Batchifier():
         self.recv_c, self.send = Pipe()
 
     def run(self,batch):
-        #model = NMFAbstractsModel()
-        #model._load_model_x()
-        #model._load_model_lr()
-        #return model.query_batch(batch)
-        
+        # return model.query_batch(batch)
+
         p = Process(target=self.f, args=(self.recv_c, self.send_c))
         p.start()
         
@@ -32,18 +30,18 @@ class Batchifier():
         p.join()
         
         return results
-        
 
     def f(self, recv, send):
         sys.stderr = open("debug-multiprocessing.err.txt", "w")
         sys.stdout = open("debug-multiprocessing.out.txt", "w")
-        sys.path.insert(0, os.getcwd())
-        sys.path.insert(0, os.path.join(os.getcwd(),"..","data"))
+        sys.path.insert(0, os.path.join(os.getcwd(),".."))
+        sys.path.insert(0, os.path.join(os.getcwd(),"..","..","data"))
+        sys.path.insert(0, os.path.join(os.getcwd(),"..","evaluations"))
         
-        from NMFAbstractsModel import NMFAbstractsModel
-        model = NMFAbstractsModel()
+        from LDAAbstractsModel import LDAAbstractsModel
+        model = LDAAbstractsModel()
         model._load_model_x()
-        model._load_model_lr()
+        model._load_model_factors()
         
         batch = recv.recv()
         results = model.query_batch(batch)
@@ -52,9 +50,12 @@ class Batchifier():
         send.close()
 
 if __name__ == '__main__':
-    sys.path.insert(0, os.path.join(os.getcwd(),"..","data"))
+    sys.path.insert(0, os.path.join(os.getcwd()))
+    sys.path.insert(0, os.path.join(os.getcwd(),".."))
+    sys.path.insert(0, os.path.join(os.getcwd(),"..","..","data"))
+    sys.path.insert(0, os.path.join(os.getcwd(),"..","evaluations"))
     
-    from NMFAbstractsModel import NMFAbstractsModel
+    from LDAAbstractsModel import LDAAbstractsModel
     from DataLoader import DataLoader
     import pandas as pd
     import numpy as np
@@ -62,7 +63,7 @@ if __name__ == '__main__':
     
     ### load training data if it is already pickled, otherwise create it from scratch
     
-    filename = "abstracts.nmf.train.pkl"
+    filename = "abstracts.lda.train.pkl"
     
     d_train = DataLoader()
     if not d_train.get_persistent(filename):
@@ -74,12 +75,13 @@ if __name__ == '__main__':
         )
         d_train.make_persistent(filename)
     
-    model = NMFAbstractsModel()
-    model.train(d_train.data,500,2)
-    
+    model = LDAAbstractsModel()
+    dimensions = 500
+    model.train(d_train.data, dimensions)
+     
     ### load test data if it is already pickled, otherwise create it from scratch
     
-    filename = "abstracts.nmf.test.pkl"
+    filename = "abstracts.lda.test.pkl"
     
     d_test = DataLoader()
     if not d_test.get_persistent(filename):
@@ -120,11 +122,11 @@ if __name__ == '__main__':
         results = batchifier.run(minibatch)
         conferences.extend(results[0])
         confidences.extend(results[1])
-        #break
         
     recommendation = [conferences,confidences]
         
     ### evaluate
+    
     print("Computing MAP.")
     from MAPEvaluation import MAPEvaluation
     evaluation = MAPEvaluation()

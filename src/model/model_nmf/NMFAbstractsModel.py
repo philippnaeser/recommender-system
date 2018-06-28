@@ -18,8 +18,8 @@ import pickle
 
 class NMFAbstractsModel(AbstractModel):
     
-    persistent_file_x = os.path.join("..","..","data","processed","abstracts.nmf.model.X.pkl")
-    persistent_file_lr = os.path.join("..","..","data","processed","abstracts.nmf.model.LR.pkl")
+    persistent_file_x = os.path.join("..","..","..","data","processed","abstracts.nmf.model.X.pkl")
+    persistent_file_lr = os.path.join("..","..","..","data","processed","abstracts.nmf.model.LR.pkl")
     
     ##########################################
     def __init__(self):

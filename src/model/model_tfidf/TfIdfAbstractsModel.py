@@ -12,11 +12,12 @@ from nltk.stem.porter import PorterStemmer
 from sklearn.metrics.pairwise import cosine_similarity
 import re
 import os
+import sys
 import pickle
 
 class TfIdfAbstractsModel(AbstractModel):
     
-    persistent_file = os.path.join("..","..","data","processed","abstracts.tfidf.model.pkl")
+    persistent_file = os.path.join("..","..","..","data","processed","abstracts.tfidf.model.pkl")
     
     ##########################################
     def __init__(self,recs=10):
@@ -25,8 +26,9 @@ class TfIdfAbstractsModel(AbstractModel):
         self.stem_vectorizer = TfidfVectorizer(
                 tokenizer=self
                 ,stop_words="english"
-                #,min_df=10
-                #,max_df=0.6
+                #,strip_accents = "unicode"
+                ,min_df=3
+                #,max_df=0.7
         )
         # number of recommendations to return
         self.recs = recs

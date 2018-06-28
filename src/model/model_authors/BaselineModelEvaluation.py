@@ -6,7 +6,9 @@ Created on Tue Apr 24 16:23:29 2018
 """
 import sys
 import os
-sys.path.insert(0, os.path.join(".","..","data"))
+sys.path.insert(0, os.path.join(".","..","..","data"))
+sys.path.insert(0, os.path.join(".",".."))
+sys.path.insert(0, os.path.join(".","..","evaluations"))
 
 from BaselineModel import BaselineModel
 from DataLoader import DataLoader

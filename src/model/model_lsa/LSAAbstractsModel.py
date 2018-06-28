@@ -20,11 +20,11 @@ class LSAAbstractsModel(AbstractModel):
     
     persistent_file_x = os.path.join(
             os.path.dirname(os.path.realpath(__file__)),
-            "..","..","data","processed","abstracts.lsa.model.X.pkl"
+            "..","..","..","data","processed","abstracts.lsa.model.X.pkl"
     )
     persistent_file_factors = os.path.join(
             os.path.dirname(os.path.realpath(__file__)),
-            "..","..","data","processed","abstracts.lsa.model.factors.pkl"
+            "..","..","..","data","processed","abstracts.lsa.model.factors.pkl"
     )
     
     ##########################################

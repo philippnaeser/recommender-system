@@ -30,8 +30,9 @@ class Batchifier():
     def f(self, recv, send):
         sys.stderr = open("debug-multiprocessing.err.txt", "w")
         sys.stdout = open("debug-multiprocessing.out.txt", "w")
-        sys.path.insert(0, os.getcwd())
-        sys.path.insert(0, os.path.join(os.getcwd(),"..","data"))
+        sys.path.insert(0, os.path.join(os.getcwd(),".."))
+        sys.path.insert(0, os.path.join(os.getcwd(),"..","..","data"))
+        sys.path.insert(0, os.path.join(os.getcwd(),"..","evaluations"))
         
         from TfIdfAbstractsModel import TfIdfAbstractsModel
         model = TfIdfAbstractsModel()
@@ -44,7 +45,10 @@ class Batchifier():
         send.close()
 
 if __name__ == '__main__':
-    sys.path.insert(0, os.path.join(os.getcwd(),"..","data"))
+    sys.path.insert(0, os.path.join(os.getcwd()))
+    sys.path.insert(0, os.path.join(os.getcwd(),".."))
+    sys.path.insert(0, os.path.join(os.getcwd(),"..","..","data"))
+    sys.path.insert(0, os.path.join(os.getcwd(),"..","evaluations"))
     
     from TfIdfAbstractsModel import TfIdfAbstractsModel
     from DataLoader import DataLoader
@@ -138,4 +142,4 @@ if __name__ == '__main__':
     evaluation = MeanFMeasureEvaluation()
     ev_fmeasure = evaluation.evaluate(recommendation, truth, 1)
     
-    print("Recall: {}, Precision: {}, F1Measure: {}, MAP: {}".format(ev_recall, ev_precision, ev_fmeasure, ev_map))
+    print("Recall: {}, Precision: {}, F1Measure: {}, MAP: {}, #Recs: {}, Feats: {}".format(ev_recall, ev_precision, ev_fmeasure, ev_map, len(recommendation[0]), model.stem_matrix.shape))

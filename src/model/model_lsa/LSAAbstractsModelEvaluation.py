@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Jun 20 14:18:11 2018
+Created on Fri May 25 16:11:07 2018
 
 @author: Andreea
+@author: Steff
 """
 
 import os
 import sys
-sys.path.insert(0, os.path.join(os.getcwd(),"..","data"))
-
 
 # query batchifier to avoid OutOfMemory exceptions
 class Batchifier():
@@ -34,11 +33,12 @@ class Batchifier():
     def f(self, recv, send):
         sys.stderr = open("debug-multiprocessing.err.txt", "w")
         sys.stdout = open("debug-multiprocessing.out.txt", "w")
-        sys.path.insert(0, os.getcwd())
-        sys.path.insert(0, os.path.join(os.getcwd(),"..","data"))
+        sys.path.insert(0, os.path.join(os.getcwd(),".."))
+        sys.path.insert(0, os.path.join(os.getcwd(),"..","..","data"))
+        sys.path.insert(0, os.path.join(os.getcwd(),"..","evaluations"))
         
-        from LDAAbstractsModel import LDAAbstractsModel
-        model = LDAAbstractsModel()
+        from LSAAbstractsModel import LSAAbstractsModel
+        model = LSAAbstractsModel()
         model._load_model_x()
         model._load_model_factors()
         
@@ -49,9 +49,12 @@ class Batchifier():
         send.close()
 
 if __name__ == '__main__':
-    sys.path.insert(0, os.path.join(os.getcwd(),"..","data"))
+    sys.path.insert(0, os.path.join(os.getcwd()))
+    sys.path.insert(0, os.path.join(os.getcwd(),".."))
+    sys.path.insert(0, os.path.join(os.getcwd(),"..","..","data"))
+    sys.path.insert(0, os.path.join(os.getcwd(),"..","evaluations"))
     
-    from LDAAbstractsModel import LDAAbstractsModel
+    from LSAAbstractsModel import LSAAbstractsModel
     from DataLoader import DataLoader
     import pandas as pd
     import numpy as np
@@ -59,7 +62,7 @@ if __name__ == '__main__':
     
     ### load training data if it is already pickled, otherwise create it from scratch
     
-    filename = "abstracts.lda.train.pkl"
+    filename = "abstracts.lsa.train.pkl"
     
     d_train = DataLoader()
     if not d_train.get_persistent(filename):
@@ -71,13 +74,13 @@ if __name__ == '__main__':
         )
         d_train.make_persistent(filename)
     
-    model = LDAAbstractsModel()
-    dimensions = 500
+    model = LSAAbstractsModel()
+    dimensions = 50
     model.train(d_train.data, dimensions)
      
     ### load test data if it is already pickled, otherwise create it from scratch
     
-    filename = "abstracts.lda.test.pkl"
+    filename = "abstracts.lsa.test.pkl"
     
     d_test = DataLoader()
     if not d_test.get_persistent(filename):

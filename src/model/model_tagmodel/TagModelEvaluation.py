@@ -3,12 +3,15 @@
 @author: Philipp
 """
 
-from TagModel import TagModel
 import pandas as pd
 import sys
 import os
-sys.path.insert(0, os.path.join(".","..","data"))
+print(os.path.join(os.getcwd(),".."))
+sys.path.insert(0, os.path.join(".","..","..","data"))
+sys.path.insert(0, os.path.join(os.getcwd(),".."))
+sys.path.insert(0, os.path.join(os.getcwd(),"..","evaluations"))
 from DataLoader import DataLoader
+from TagModel import TagModel
 
 """
     Prepare the data for the evaluation.
@@ -34,7 +37,8 @@ model_test = TagModel()
 model_test.train(data_test)
 
 
-tags = list(data_test.tag_name)
+#tags = list(data_test.tag_name)
+tags = list(model_test.get_tag_names(count=0))
 print("Getting recommendations.")
 recommendation = model.query_batch(tags)
 print("Getting truth values.")
