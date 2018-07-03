@@ -5,7 +5,7 @@ Created on Wed Jun 27 18:33:20 2018
 @author: Andreea
 """
 
-import WikiCFPCrawler
+import ConferenceCrawler
 import os
 
 ##URL to "All Categories" page of the WikiCFP website
@@ -14,7 +14,7 @@ categories_url = "http://www.wikicfp.com/cfp/allcat"
 ##Maximum number of pages to be crawled for each category
 num_pages = 20
 
-crawler = WikiCFPCrawler.WikiCFPCrawler(categories_url, num_pages)
+crawler = ConferenceCrawler.ConferenceCrawler(categories_url, num_pages)
 
 all_conferences = crawler.crawl_conferences()[0]
 unique_conferences = crawler.crawl_conferences()[1]

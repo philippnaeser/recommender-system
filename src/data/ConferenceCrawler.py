@@ -13,16 +13,21 @@ import time
 import datetime
 import pickle
 
-class WikiCFPCrawler():
+class ConferenceCrawler():
+    """
+    Crawls conferences from the WikiCFP page by parsing the tables with
+    conferences information for each category, then removing duplicates.
+    
+    """
     
     persistent_file_conferences = os.path.join(
             os.path.dirname(os.path.realpath(__file__)),
-            "..","..","data","interim", 'WikiCFP', "WikiCFP.conferences.pkl"
+            "..","..","data","interim", 'WikiCFP', "conferences.pkl"
     )
     
     persistent_file_categories = os.path.join(
             os.path.dirname(os.path.realpath(__file__)),
-            "..","..","data","interim", 'WikiCFP', "WikiCFP.categories.pkl"
+            "..","..","data","interim", 'WikiCFP', "categories.pkl"
     )
     
     ##########################################
@@ -143,6 +148,7 @@ class WikiCFPCrawler():
                         idx +=1
                         if idx==5:
                             idx=0
+        
         #Convert parsed table to dataframe
         conferences = pd.DataFrame({'Conference': name, 'Detailed Name': detailed_name, 'Date': date, 'Location': location, 'Deadline': deadline,
                                    'WikiCFP URL': confurl})
@@ -176,6 +182,7 @@ class WikiCFPCrawler():
             self._save_data_conferences()
 
         time = datetime.datetime.now().isoformat(sep = ' ', timespec = 'seconds')
+        
         print("Finished parsing {} unique WikiCFP conferences from a total of "\
               "{} conferences in {} categories.".format(len(self.unique_conferences),
               len(self.all_conferences), len(self.categories)), "\n")
@@ -184,19 +191,19 @@ class WikiCFPCrawler():
         return (self.all_conferences, self.unique_conferences)
     ##########################################
     def _save_data_categories(self):
-        with open(WikiCFPCrawler.persistent_file_categories,"wb") as f:
+        with open(ConferenceCrawler.persistent_file_categories,"wb") as f:
             pickle.dump(self.categories, f)
       
     ##########################################
     def _save_data_conferences(self):
-        with open(WikiCFPCrawler.persistent_file_conferences,"wb") as f:
+        with open(ConferenceCrawler.persistent_file_conferences,"wb") as f:
             pickle.dump([self.all_conferences, self.unique_conferences], f)
     
     ##########################################  
     def _load_data_categories(self):
-        if os.path.isfile(WikiCFPCrawler.persistent_file_categories):
+        if os.path.isfile(ConferenceCrawler.persistent_file_categories):
             print("Loading data: Categories")
-            with open(WikiCFPCrawler.persistent_file_categories,"rb") as f:
+            with open(ConferenceCrawler.persistent_file_categories,"rb") as f:
                 self.categories = pickle.load(f)
                 print("Loaded.")
                 return True
@@ -205,9 +212,9 @@ class WikiCFPCrawler():
     
     ##########################################
     def _load_data_conferences(self):
-        if os.path.isfile(WikiCFPCrawler.persistent_file_conferences):
+        if os.path.isfile(ConferenceCrawler.persistent_file_conferences):
             print("Loading data: Conferences")
-            with open(WikiCFPCrawler.persistent_file_conferences,"rb") as f:
+            with open(ConferenceCrawler.persistent_file_conferences,"rb") as f:
                 self.all_conferences, self.unique_conferences = pickle.load(f)
                 print("Loaded.")
                 return True
