@@ -74,7 +74,7 @@ class ConferenceCrawler():
                             ##Get name and WikiCFP URL
                             category.append(infos.a.text.strip())
                             category_url.append("http://www.wikicfp.com" + infos.a['href'])
-            
+                        
                         idx +=1
                         if idx==2:
                             idx=0

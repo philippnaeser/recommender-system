@@ -414,7 +414,7 @@ class WikiCFPCrawler():
                     if "Conference Series" in infos.text:
                         data = infos.text.strip().split('\n')
                         data = list(filter(None, data))
-                        series = data[1].split(": ")[1]
+                        series = data[-1].split(": ")[1]
                         return series
         return None
     

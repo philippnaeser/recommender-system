@@ -59,7 +59,7 @@ class WikiCFPDataParser():
             persistent_file_conferences = self._changePath(str(year))
             self._save_conferences(conferences_in_year ,persistent_file_conferences)
         else:
-            print("There are no conferences taking place in {}.".format(year))
+            print("There are no conferences taking place in {}.\n".format(year))
         
         return conferences_in_year
         
@@ -101,7 +101,7 @@ class WikiCFPDataParser():
             persistent_file_conferences = self._changePath(str(period))
             self._save_conferences(conferences_in_period, persistent_file_conferences)
         else:
-            print("There are no conferences taking place in the period {}-{}.".format(start_period, end_period))
+            print("There are no conferences taking place in the period {}-{}.\n".format(start_period, end_period))
         
         return conferences_in_period
 
