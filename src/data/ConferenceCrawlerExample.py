@@ -19,17 +19,14 @@ crawler = ConferenceCrawler.ConferenceCrawler(categories_url, num_pages)
 all_conferences = crawler.crawl_conferences()[0]
 unique_conferences = crawler.crawl_conferences()[1]
 
-##Sort conferences by deadline
-unique_conferences.sort_values('Deadline', inplace = True)
+filename_all_conferences = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)),
+            "..","..","data","interim", 'WikiCFP', "all_conferences.csv"
+    )
+all_conferences.to_csv(filename_all_conferences)
 
-#filename_all_conferences = os.path.join(
-#            os.path.dirname(os.path.realpath(__file__)),
-#            "..","..","data","interim", 'WikiCFP', "all_conferences.csv"
-#    )
-#all_conferences.to_csv(filename_all_conferences)
-#
-#filename_unique_conferences = os.path.join(
-#            os.path.dirname(os.path.realpath(__file__)),
-#            "..","..","data","interim", 'WikiCFP', "unique_conferences.csv"
-#    )
-#unique_conferences.to_csv(filename_unique_conferences)
+filename_unique_conferences = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)),
+            "..","..","data","interim", 'WikiCFP', "unique_conferences.csv"
+    )
+unique_conferences.to_csv(filename_unique_conferences)

@@ -87,6 +87,7 @@ class ConferenceCrawler():
     
     ##########################################
     def _parse_table(self, url):
+        confid = []
         name = []
         detailed_name = []
         date = []
@@ -94,7 +95,7 @@ class ConferenceCrawler():
         deadline = []
         confurl = []
         
-        print('Extracting the data from website.')
+        print('Extracting the data from website.\n')
         site = 0
         moredata = True
         
@@ -105,7 +106,8 @@ class ConferenceCrawler():
     
             #Fire the request
             try:
-                print("Requesting: {}".format("".join([parsed_url.netloc, parsed_url.path, parsed_url.query, '&page=', str(site)])))
+                print("Requesting: {}".format("".join([parsed_url.netloc, 
+                      parsed_url.path, parsed_url.query, '&page=', str(site)])))
                 data = requests.get(url, params = {'page': site})
                 time.sleep(5) ##WikiCFP policy, issue at most one query every five seconds
                 print('Done.')
@@ -127,9 +129,10 @@ class ConferenceCrawler():
                         #Go through the table
                         if idx == 0:
                             ##Get name and WikiCFP URL
-                            #print('Processing event www.wikicfp.com' + infos.a['href'])
                             name.append(infos.a.text.strip())
                             confurl.append("http://www.wikicfp.com" + infos.a['href'])
+                            event_id = infos.a['href'].split("?")[-1].split("&")[0].split("=")[-1]
+                            confid.append(event_id)
                         elif idx==1:
                             #get detailed name
                             detailed_name.append(infos.text.strip())
@@ -150,22 +153,24 @@ class ConferenceCrawler():
                             idx=0
         
         #Convert parsed table to dataframe
-        conferences = pd.DataFrame({'Conference': name, 'Detailed Name': detailed_name, 'Date': date, 'Location': location, 'Deadline': deadline,
+        conferences = pd.DataFrame({'Conference ID': confid, 'Conference': name, 
+                                    'Detailed Name': detailed_name, 'Date': date, 
+                                    'Location': location, 'Deadline': deadline,
                                    'WikiCFP URL': confurl})
     
-        print("Finished parsing tables.")
+        print("Finished parsing tables.\n")
         return conferences
     
     ##########################################
     def crawl_conferences(self):
         
         if not self._load_data_categories():
-            print("Categories not persistent yet. Crawling now.")
+            print("Categories not persistent yet. Crawling now.\n")
             self.categories = self._parse_categories()
             self._save_data_categories()
         
         if not self._load_data_conferences():
-            print("Conferences not persistent yet. Crawling now.")
+            print("Conferences not persistent yet. Crawling now.\n")
             self.all_conferences = pd.DataFrame()
             for index, row in self.categories.iterrows():
                 print("Crawling conferences for category \'{}\'".format(self.categories['Category'][index]))
@@ -173,12 +178,14 @@ class ConferenceCrawler():
                 category_url = self.categories['Category URL'][index]
                 parsed_tables = self._parse_table(category_url)
                 
-                print('Finished crawling conferences for {}/{} categories.'.format(index+1, len(self.categories)), "\n")
+                print('Finished crawling conferences for {}/{} categories.'.format(index+1, 
+                      len(self.categories)), "\n")
                 
                 self.all_conferences = pd.concat([self.all_conferences, parsed_tables])
              
-            ##Get unique conferences (filter by WikiCFP URL)
-            self.unique_conferences = self.all_conferences.drop_duplicates(subset=['WikiCFP URL'], keep='first')
+            ##Get unique conferences (filter by event ID)
+            self.unique_conferences = self.all_conferences.drop_duplicates(subset=['Conference ID'], 
+                                                                           keep='first')
             self._save_data_conferences()
 
         time = datetime.datetime.now().isoformat(sep = ' ', timespec = 'seconds')
