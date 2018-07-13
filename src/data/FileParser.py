@@ -85,6 +85,27 @@ class FileParser:
         self.persistent = {}
         
         self.processes = {
+            "glove.6d50":{
+                    "filename":os.path.join(os.path.dirname(os.path.realpath(__file__)),"..","..","data","external","glove.6B.50d.txt"),
+                    "processLine":"processLineGlove",
+                    "persistentFile":os.path.join(os.path.dirname(os.path.realpath(__file__)),"..","..","data","external","glove.6d50.pkl"),
+                    "encoding":"utf8",
+                    "persistentVariable":{}
+            },
+            "glove.6d300":{
+                    "filename":os.path.join(os.path.dirname(os.path.realpath(__file__)),"..","..","data","external","glove.6B.300d.txt"),
+                    "processLine":"processLineGlove",
+                    "persistentFile":os.path.join(os.path.dirname(os.path.realpath(__file__)),"..","..","data","external","glove.6d300.pkl"),
+                    "encoding":"utf8",
+                    "persistentVariable":{}
+            },
+            "glove.840d300":{
+                    "filename":os.path.join(os.path.dirname(os.path.realpath(__file__)),"..","..","data","external","glove.840B.300d.txt"),
+                    "processLine":"processLineGlove",
+                    "persistentFile":os.path.join(os.path.dirname(os.path.realpath(__file__)),"..","..","data","external","glove.840d300.pkl"),
+                    "encoding":"utf8",
+                    "persistentVariable":{}
+            },
             "books":{
                     "filename":self.path_raw + "springernature-scigraph-books.cc-by.2017-11-07.nt",
                     "processLine":"processLineBooks",
@@ -304,16 +325,17 @@ class FileParser:
                 self.processes[process]["filename"],
                 self.processes[process]["processLine"],
                 self.persistent[process],
-                self.processes[process]["parameters"] if "parameters" in self.processes[process] else None
+                self.processes[process]["parameters"] if "parameters" in self.processes[process] else None,
+                self.processes[process]["encoding"] if "encoding" in self.processes[process] else None
         )
         with open(self.processes[process]["persistentFile"],"wb") as f:
             pickle.dump(self.persistent[process], f)
         
         return self.persistent[process]
     
-    def parseFile(self,filename,processLine,variable,parameters):
+    def parseFile(self,filename,processLine,variable,parameters,encoding):
         self.countLines(filename)
-        self.processFile(filename,processLine,variable,parameters)
+        self.processFile(filename,processLine,variable,parameters,encoding)
         
     """
         Count the lines upfront to provide progress.
@@ -323,7 +345,7 @@ class FileParser:
         self.tic()
         
         count = 0
-        with open(filename) as f:
+        with open(filename,encoding="utf8") as f:
             for line in f:
                 count += 1
         
@@ -346,14 +368,14 @@ class FileParser:
         Process a given file calling function @process for each line.
         @process is given @variable to store results.
     """
-    def processFile(self,filename,processLine,variable,parameters):
+    def processFile(self,filename,processLine,variable,parameters,encoding):
         print("Start processing file.")
         self.tic()
         
         processLineFunction = self.__getattribute__(processLine)
         
         ### 14sec / 23sec split / 77sec regex
-        with open(filename) as f:
+        with open(filename,encoding=encoding) as f:
             for line in f:
                 self.increaseCount()
                 processLineFunction(line,variable,parameters)
@@ -571,7 +593,14 @@ class FileParser:
         if (line[1] == nt_abstract):
             if (line[0] in self.getData(parameters)):
                 v[line[0]] = line[2][1:-3]
-    
+                
+    """
+        Called for Glove word embeddings
+    """
+    def processLineGlove(self,line,v,parameters):
+        line = line.strip("\n").split(" ")
+        key = line.pop(0)
+        v[key] = [float(i) for i in line]
 
     
     
