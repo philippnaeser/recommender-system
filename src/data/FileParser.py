@@ -92,10 +92,31 @@ class FileParser:
                     "encoding":"utf8",
                     "persistentVariable":{}
             },
+            "glove.6d100":{
+                    "filename":os.path.join(os.path.dirname(os.path.realpath(__file__)),"..","..","data","external","glove.6B.100d.txt"),
+                    "processLine":"processLineGlove",
+                    "persistentFile":os.path.join(os.path.dirname(os.path.realpath(__file__)),"..","..","data","external","glove.6d100.pkl"),
+                    "encoding":"utf8",
+                    "persistentVariable":{}
+            },
+            "glove.6d200":{
+                    "filename":os.path.join(os.path.dirname(os.path.realpath(__file__)),"..","..","data","external","glove.6B.200d.txt"),
+                    "processLine":"processLineGlove",
+                    "persistentFile":os.path.join(os.path.dirname(os.path.realpath(__file__)),"..","..","data","external","glove.6d200.pkl"),
+                    "encoding":"utf8",
+                    "persistentVariable":{}
+            },
             "glove.6d300":{
                     "filename":os.path.join(os.path.dirname(os.path.realpath(__file__)),"..","..","data","external","glove.6B.300d.txt"),
                     "processLine":"processLineGlove",
                     "persistentFile":os.path.join(os.path.dirname(os.path.realpath(__file__)),"..","..","data","external","glove.6d300.pkl"),
+                    "encoding":"utf8",
+                    "persistentVariable":{}
+            },
+            "glove.42d300":{
+                    "filename":os.path.join(os.path.dirname(os.path.realpath(__file__)),"..","..","data","external","glove.42B.300d.txt"),
+                    "processLine":"processLineGlove",
+                    "persistentFile":os.path.join(os.path.dirname(os.path.realpath(__file__)),"..","..","data","external","glove.42d300.pkl"),
                     "encoding":"utf8",
                     "persistentVariable":{}
             },
