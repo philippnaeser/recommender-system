@@ -73,6 +73,15 @@ class GloveParser:
             "840d300-folder":os.path.join(path_glove,"glove.840B.300d-spacy","")
     }
     
+    lengths = {
+            "6d50":50,
+            "6d100":100,
+            "6d200":200,
+            "6d300":300,
+            "42d300":300,
+            "840d300":300
+    }
+    
     models = {}
     
     nlp = spacy.load("en",vectors=False)
@@ -88,7 +97,7 @@ class GloveParser:
         """
         try:
             self.nlp = spacy.load(self.paths[model + "-folder"])
-            self.length = 50
+            self.length = self.lengths[model]
             
         except OSError:
             if not os.path.isfile(self.paths[model + "-w2v"]):
@@ -100,12 +109,12 @@ class GloveParser:
             
             try:
                 self.current_model = self.models[model + "-w2v"]
-                self.length = 50
+                self.length = self.lengths[model]
             except KeyError:
                 print("Glove not loaded yet, loading it.")
                 self.models[model + "-w2v"] = KeyedVectors.load_word2vec_format(self.paths[model + "-w2v"], binary=False)
                 self.current_model = self.models[model + "-w2v"]
-                self.length = 50
+                self.length = self.lengths[model]
             
             print("Setting up spacy vocab.")
             

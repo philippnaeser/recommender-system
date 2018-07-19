@@ -368,4 +368,4 @@ class DataLoader:
         
     # get test data
     def test_data(self, which="small"):
-        return self.papers(["2017"]).conferences().conferenceseries()
+        return self.papers(["2016"]).conferences().conferenceseries()
