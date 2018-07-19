@@ -27,7 +27,7 @@ class DataLoader:
         if hasattr(self,"years") and years is not None:
             raise AttributeError("years already set.")
         elif years is not None:
-            self.years = years
+            self.years = [str(y) for y in years]
         elif not hasattr(self,"years"):
             raise AttributeError("years needed.")
 
@@ -193,7 +193,7 @@ class DataLoader:
             
             for y in self.years:
                 df_contribution = pd.DataFrame(
-                    list(self.parser.getData("contributions_" + y).items()),
+                    list(self.parser.getData("contributions_" + str(y)).items()),
                     columns=["contribution"]
                 )
                 
@@ -336,13 +336,14 @@ class DataLoader:
         return self
     
     
+    # save in pickle file
     def make_persistent(self, filename):
         file = os.path.join(self.path,filename)
         with open(file,"wb") as f:
             pickle.dump(self.data, f)
     
     
-    
+    # load from pickle file
     def get_persistent(self, filename):
         try:
             file = os.path.join(self.path,filename)
@@ -350,4 +351,21 @@ class DataLoader:
                 self.data = pickle.load(f)
                 return True
         except FileNotFoundError:
-            return False
+            return False   
+        
+    
+    # get training data
+    def training_data(self, which="small"):
+        if which == "small":
+            return self.papers(["2013","2014","2015"]).conferences().conferenceseries()
+        else:
+            years = self.parser.years.copy()
+            years.remove(2016)
+            years.remove(2017)
+            return self.papers(years).conferences().conferenceseries()
+        
+        
+        
+    # get test data
+    def test_data(self, which="small"):
+        return self.papers(["2017"]).conferences().conferenceseries()
