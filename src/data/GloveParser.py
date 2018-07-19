@@ -12,6 +12,36 @@ from gensim.models.keyedvectors import KeyedVectors
 import spacy
 import numpy as np
 
+"""
+import time
+class Timer:
+    start_time = []
+    
+    ### start runtime check
+    def tic(self):
+        self.start_time.append(time.time())
+    
+    ### print runtime information
+    def toc(self):
+        print("Timer :: toc --- %s seconds ---" % (time.time() - self.start_time.pop()))
+        
+    def set_counter(self,c,max=100):
+        self.counter_max = c
+        self.counter = 0
+        self.checkpoint = int(self.counter_max/max)
+        self.step = self.checkpoint
+        self.tic()
+        
+    def count(self,add=1):
+        self.counter = self.counter + add
+        
+        if (self.counter > self.checkpoint):
+            print("Timer :: Checkpoint reached: {}%".format(int(self.counter*100/self.counter_max)))
+            self.toc()
+            self.tic()
+            self.checkpoint += self.step
+"""
+
 class GloveParser:
 
     path_glove = os.path.join(
@@ -47,6 +77,8 @@ class GloveParser:
     
     nlp = spacy.load("en",vectors=False)
     
+    #timer = Timer()
+    
     def load_model(self,model):
         """
         Loads a pre-trained word embedding to be used by this parser.
@@ -56,6 +88,7 @@ class GloveParser:
         """
         try:
             self.nlp = spacy.load(self.paths[model + "-folder"])
+            self.length = 50
             
         except OSError:
             if not os.path.isfile(self.paths[model + "-w2v"]):
@@ -67,10 +100,12 @@ class GloveParser:
             
             try:
                 self.current_model = self.models[model + "-w2v"]
+                self.length = 50
             except KeyError:
                 print("Glove not loaded yet, loading it.")
                 self.models[model + "-w2v"] = KeyedVectors.load_word2vec_format(self.paths[model + "-w2v"], binary=False)
                 self.current_model = self.models[model + "-w2v"]
+                self.length = 50
             
             print("Setting up spacy vocab.")
             
@@ -86,8 +121,9 @@ class GloveParser:
             except FileNotFoundError:
                 os.mkdir(self.paths[model + "-folder"])
                 self.nlp.to_disk(self.paths[model + "-folder"])
-        
-    def transform(self,sentence):
+    
+    #################################################    
+    def transform_matrix(self,sentence):
         """
         Transform a string into a matrix containing word embeddings as rows.
         
@@ -104,9 +140,52 @@ class GloveParser:
                 m = np.array([w.vector])
             
         return m
+    
+    #################################################
+    def transform_vector(self,sentence):
+        """
+        Transform a string into a vector containing concatenated word embeddings.
+        
+        Args:
+            sentence (str): The string to be transformed. Can be a sentence or a whole document.
+            
+        Returns:
+            A numpy array that contains concatenated word embeddings for each word given by "sentence".
+        """
+        
+        for w in self.nlp(sentence):
+            try:
+                m = np.append(m,w.vector)
+            except NameError:
+                m = np.array(w.vector)
+            
+        return m
+    
+    #################################################
+    def transform_vectors(self,sentences,batch_size=100):
+        """
+        Transform a list of strings into a list of vectors containing concatenated word embeddings.
+        
+        Args:
+            sentence list(str): The list of strings to be transformed.
+            
+        Returns:
+            A list of numpy arrays that contain concatenated word embeddings for each word given by "sentence".
+        """
+        
+        vectors = list()
+        for doc in self.nlp.tokenizer.pipe(sentences, batch_size=batch_size):
+            m = np.empty(len(doc)*self.length)
+            for i, w in enumerate(doc):
+                m[(i*self.length):((i+1)*self.length)] = w.vector
+            vectors.append(m)
+            
+        return vectors
+    
+    
         
 ## Example:
 #parser = GloveParser()
-#parser.load_model("840d300")
-#test = parser.transform("oi mate, what's going on?")
+#parser.load_model("6d50")
+#test = parser.transform_vector("oi mate, what's going on?")
 #print(test.shape)
