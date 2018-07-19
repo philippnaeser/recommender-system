@@ -191,6 +191,27 @@ class GloveParser:
             
         return vectors
     
+    #################################################
+    def transform_avg_vectors(self,sentences,batch_size=100):
+        """
+        Transform a list of strings into a list of vectors containing averaged word embeddings.
+        
+        Args:
+            sentence list(str): The list of strings to be transformed.
+            
+        Returns:
+            A list of numpy arrays that contain averaged word embeddings for each word given by "sentence".
+        """
+        
+        vectors = list()
+        for doc in self.nlp.tokenizer.pipe(sentences, batch_size=batch_size):
+            m = np.empty(self.length)
+            for i, w in enumerate(doc):
+                m = np.add(m,w.vector)
+            vectors.append(m/len(doc))
+            
+        return vectors
+    
     
         
 ## Example:
