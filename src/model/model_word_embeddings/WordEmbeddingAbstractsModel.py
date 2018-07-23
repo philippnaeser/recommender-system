@@ -10,7 +10,7 @@ from nltk.corpus import stopwords
 import numpy as np
 import os
 import pickle
-from GloveParser import GloveParser
+from EmbeddingsParser import EmbeddingsParser
 from scipy.spatial.distance import cdist
 
 
@@ -24,7 +24,7 @@ class WordEmbeddingAbstractsModel(AbstractModel):
     ##########################################
     def __init__(self, recs=10):
         self.stopList = stopwords.words('english')  
-        self.parser = GloveParser()
+        self.parser = EmbeddingsParser()
         
         # number of recommendations to return
         self.recs = recs
