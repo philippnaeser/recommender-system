@@ -10,6 +10,8 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import Dataset
 
+import matplotlib.pyplot as plt
+
 import os
 import sys
 import time
@@ -24,6 +26,23 @@ import torch.backends.cudnn as cudnn
 cudnn.benchmark = True
 cudnn.fastest = True
 
+#### TRAINING PARAMETERS
+
+BATCH_SIZE = 500
+CHUNKS_IN_MEMORY = 10
+CHUNK_SIZE = 60000
+EPOCHS = 50
+DATA_TRAIN = "small"
+SHUFFLE_TRAIN = False
+DATA_TEST = "small"
+EMBEDDING_MODEL = "6d50"
+EMBEDDING_SIZE = 50
+NUM_FILTERS_CONV = 50
+WEIGHT_DECAY = 0.0005
+
+VERBOSE_EPOCHS = False
+VERBOSE_EPOCHS_STEPS = 10
+
 ####
 
 class Timer:
@@ -35,7 +54,9 @@ class Timer:
     
     ### print runtime information
     def toc(self):
-        print("Timer :: toc --- %s seconds ---" % (time.time() - self.start_time.pop()))
+        diff = (time.time() - self.start_time.pop())
+        print("Timer :: toc --- %s seconds ---" % diff)
+        return diff
         
     def set_counter(self,c,max=100):
         self.counter_max = c
@@ -180,7 +201,11 @@ class BatchifiedData(Dataset):
             num_chunks (int): number of chunks to preload into memory.
             shuffle (bool): retrieve randomized batches
         """
+        self.timer_all = 0 #delme
+        
         self.batch_size = size
+        # count total number of batches processed
+        self.batch_total = 0
         
         self.chunk_current = 0
         self.chunks = np.arange(self.chunks_max)
@@ -193,9 +218,13 @@ class BatchifiedData(Dataset):
         
     def _next_chunks(self):
         if self.chunk_current < self.chunks_max:
-            print("Loading next chunks.")
-            timer.tic()
-            self._load_chunks(self.chunks[self.chunk_current:self.chunk_current+self.chunks_step])
+            if VERBOSE_EPOCHS:
+                print("Loading next chunks.")
+                timer.tic()
+            
+            # don't reload the data if there is only one chunk
+            if not (hasattr(self,"data_inputs") and self.chunks_max==1):
+                self._load_chunks(self.chunks[self.chunk_current:self.chunk_current+self.chunks_step])
                 
             # initialize batching
             self.batch_current = 0
@@ -204,7 +233,8 @@ class BatchifiedData(Dataset):
             if self.shuffle:
                 np.random.shuffle(self.batches)
             
-            timer.toc()
+            if VERBOSE_EPOCHS:
+                timer.toc()
             self.chunk_current += self.chunks_step
             return True
         
@@ -241,26 +271,31 @@ class BatchifiedData(Dataset):
             
         #print("Getting batch {}/{}".format(self.batch_current,self.batch_max))
         #timer.tic()
-            
+        
         # get (shuffled) indices
         i = self.batch_current * self.batch_size
-        indices = list(self.batches[i:(i+self.batch_size)])
+        indices = self.batches[i:(i+self.batch_size)]
 
         # get labels
         labels = self.data_labels[indices]
         labels = torch.cuda.LongTensor(labels).view(len(labels))#,1)
         
         # get abstracts
-        inputs = self.data_inputs[indices]
+        #inputs = self.data_inputs[indices]
+        inputs = list(self.data_inputs[indices])
         
         # pad inputs to max length
         max_len = max(len(l) for l in inputs)
+        #timer.tic() #delme
         for i, inp in enumerate(inputs):
             inputs[i] = np.concatenate((inp,np.zeros(max_len-inp.size)))
+        #self.timer_all += timer.toc() #delme
         
-        inputs = torch.cuda.FloatTensor(list(inputs)).unsqueeze(1)
+        #inputs = torch.cuda.FloatTensor(list(inputs)).unsqueeze(1)
+        inputs = torch.cuda.FloatTensor(inputs).unsqueeze(1)
         
         self.batch_current += 1
+        self.batch_total += 1
         
         #timer.toc()
         return inputs, labels
@@ -338,21 +373,32 @@ class Net(nn.Module):
         return x#self.softmax(x)
     
     def save_state(self,epoch,losses,optimizer):
-        model_state = {
+        self.model_state = {
                     "epoch":epoch,
                     "losses":losses,
                     "model":self.state_dict(),
                     "optimizer":optimizer.state_dict()
         }
-        torch.save(model_state, self.path_persistent)
+        torch.save(self.model_state, self.path_persistent)
         
     def load_state(self,optimizer):
-        model_state = torch.load(self.path_persistent)
+        self.model_state = torch.load(self.path_persistent)
         
-        self.load_state_dict(model_state["model"])
-        optimizer.load_state_dict(model_state["optimizer"])
+        self.load_state_dict(self.model_state["model"])
+        optimizer.load_state_dict(self.model_state["optimizer"])
         
-        return model_state["epoch"], model_state["losses"]
+        return self.model_state["epoch"], self.model_state["losses"]
+    
+    def plot_losses(self):
+        ymax = max((max(self.model_state["losses"][0]),max(self.model_state["losses"][1])))
+        plt.plot(self.model_state["losses"][0])
+        plt.plot(self.model_state["losses"][1])
+        plt.xlabel("Epoch")
+        plt.ylabel("Loss")
+        plt.grid(True)
+        plt.legend(["train","eval"])
+        plt.ylim(ymin=0,ymax=ymax+0.5)
+        plt.show()
         
         
 
@@ -360,15 +406,17 @@ print(">>> loading data")
 
 timer = Timer()
 d_train = BatchifiedData(
-        data_which="small",
-        glove_model="6d300"
+        data_which=DATA_TRAIN,
+        glove_model=EMBEDDING_MODEL,
+        chunk_size=CHUNK_SIZE
 )
 gc.collect()
 d_test = BatchifiedData(
         training=False,
         classes=d_train.classes,
-        data_which="small",
-        glove_model="6d300"
+        data_which=DATA_TEST,
+        glove_model=EMBEDDING_MODEL,
+        chunk_size=CHUNK_SIZE
 )
 gc.collect()
 
@@ -376,9 +424,9 @@ print(">>> creating net")
 
 # create Net
 net = Net(
-        embedding_size=300,
+        embedding_size=EMBEDDING_SIZE,
         classes=d_train.num_classes(),
-        filters=50
+        filters=NUM_FILTERS_CONV
 )
 net.cuda()
 
@@ -387,7 +435,7 @@ net.cuda()
 #optimizer = optim.SGD(net.parameters(), lr=1, momentum=0.9)
 optimizer = optim.Adadelta(
         net.parameters()
-        ,weight_decay=0.0005
+        ,weight_decay=WEIGHT_DECAY
 )
 
 losses_train = []
@@ -398,25 +446,24 @@ losses_test = []
 
 print(">>> starting training")
 
-BATCH_SIZE = 50
-CHUNKS_IN_MEMORY = 10
-EPOCHS = 50
 # batch data loading
 for epoch in range(EPOCHS):
-    print("============EPOCH {}============".format(epoch))
+    print("============ EPOCH {} ============".format(epoch))
     
     ### TRAINING
     net.train()
     
     running_loss = 0
+    divisor = 0
     timer.tic()
-    timer.set_counter(d_train.size,max=10)
+    if VERBOSE_EPOCHS:
+        timer.set_counter(d_train.size,max=VERBOSE_EPOCHS_STEPS)
     
-    print("Batchify.")
-    d_train.batchify(BATCH_SIZE,CHUNKS_IN_MEMORY)
+    if VERBOSE_EPOCHS:
+        print("Batchify.")
+    d_train.batchify(BATCH_SIZE,CHUNKS_IN_MEMORY,shuffle=SHUFFLE_TRAIN)
     while d_train.has_next_batch():
         inputs, labels = d_train.next_batch()
-        #timer.count(add=batch_size)
         
         optimizer.zero_grad()
         outputs = net(inputs)
@@ -425,9 +472,10 @@ for epoch in range(EPOCHS):
         optimizer.step()
         
         running_loss += loss.item()
-        timer.count(len(inputs))
+        if VERBOSE_EPOCHS:
+            timer.count(len(inputs))
         
-    running_loss = running_loss/math.ceil(d_train.batch_max)
+    running_loss = running_loss/math.ceil(d_train.batch_total)
     print("Train ==> Epoch: {}, Loss: {}".format(epoch,running_loss))
     timer.toc()
     losses_train.append(running_loss)
@@ -443,7 +491,8 @@ for epoch in range(EPOCHS):
     
     running_loss = 0
     timer.tic()
-    timer.set_counter(d_test.size,max=10)
+    if VERBOSE_EPOCHS:
+        timer.set_counter(d_test.size,max=VERBOSE_EPOCHS_STEPS)
     
     d_test.batchify(BATCH_SIZE,CHUNKS_IN_MEMORY,shuffle=False)
     while d_test.has_next_batch():
@@ -453,15 +502,19 @@ for epoch in range(EPOCHS):
         loss = net.loss(outputs,labels)
         
         running_loss += loss.item()
-        timer.count(len(inputs))
+        if VERBOSE_EPOCHS:
+            timer.count(len(inputs))
         
-    running_loss = running_loss/math.ceil(d_test.batch_max)
+    running_loss = running_loss/math.ceil(d_test.batch_total)
     print("Eval ==> Epoch: {}, Loss: {}".format(epoch,running_loss))
     timer.toc()
     losses_test.append(running_loss)
 
 #save model state
 net.save_state(epoch,[losses_train,losses_test],optimizer)
+
+# draw losses
+net.plot_losses()
 
 #for param in net.conv1.parameters():
 #    print(param)
