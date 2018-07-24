@@ -17,7 +17,7 @@ import sys
 import time
 import math
 sys.path.insert(0, os.path.join(os.getcwd(),"..","data"))
-from GloveParser import GloveParser
+from EmbeddingsParser import EmbeddingsParser
 from DataLoader import DataLoader as SciGraphLoader
 
 #### CUDA
@@ -151,7 +151,7 @@ class BatchifiedData(Dataset):
             print("Loading word embeddings and parser.")
             timer.tic()
             # load GloVe model
-            self.glove = GloveParser()
+            self.glove = EmbeddingsParser()
             self.glove.load_model(glove_model)
             timer.toc()
             
