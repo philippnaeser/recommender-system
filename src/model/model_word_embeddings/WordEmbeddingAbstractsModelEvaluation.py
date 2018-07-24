@@ -73,7 +73,7 @@ if __name__ == '__main__':
         d_train.make_persistent(filename)
     
     model = WordEmbeddingAbstractsModel()
-    embedding_model = "6d300"  #One of {"6d50","6d100","6d200","6d300","42d300","840d300"}.
+    embedding_model = "6d100"  #One of {"6d50","6d100","6d200","6d300","42d300","840d300", "word2vec"}.
     model.train(d_train.data, embedding_model)
     
     ### load test data if it is already pickled, otherwise create it from scratch

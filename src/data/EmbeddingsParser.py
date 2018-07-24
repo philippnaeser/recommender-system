@@ -3,6 +3,7 @@
 Created on Fri Jul 13 20:30:27 2018
 
 @author: Steff
+@author: Andreea
 """
 
 import os
@@ -42,9 +43,9 @@ class Timer:
             self.checkpoint += self.step
 """
 
-class GloveParser:
+class EmbeddingsParser:
 
-    path_glove = os.path.join(
+    path_embeddings = os.path.join(
             os.path.dirname(os.path.realpath(__file__)),
             "..",
             "..",
@@ -53,24 +54,27 @@ class GloveParser:
     )
 
     paths = {
-            "6d50":os.path.join(path_glove,"glove.6B.50d.txt"),
-            "6d50-w2v":os.path.join(path_glove,"glove.6B.50d-w2v.txt"),
-            "6d50-folder":os.path.join(path_glove,"glove.6B.50d-spacy",""),
-            "6d100":os.path.join(path_glove,"glove.6B.100d.txt"),
-            "6d100-w2v":os.path.join(path_glove,"glove.6B.100d-w2v.txt"),
-            "6d100-folder":os.path.join(path_glove,"glove.6B.100d-spacy",""),
-            "6d200":os.path.join(path_glove,"glove.6B.200d.txt"),
-            "6d200-w2v":os.path.join(path_glove,"glove.6B.200d-w2v.txt"),
-            "6d200-folder":os.path.join(path_glove,"glove.6B.200d-spacy",""),
-            "6d300":os.path.join(path_glove,"glove.6B.300d.txt"),
-            "6d300-w2v":os.path.join(path_glove,"glove.6B.300d-w2v.txt"),
-            "6d300-folder":os.path.join(path_glove,"glove.6B.300d-spacy",""),
-            "42d300":os.path.join(path_glove,"glove.42B.300d.txt"),
-            "42d300-w2v":os.path.join(path_glove,"glove.42B.300d-w2v.txt"),
-            "42d300-folder":os.path.join(path_glove,"glove.42B.300d-spacy",""),
-            "840d300":os.path.join(path_glove,"glove.840B.300d.txt"),
-            "840d300-w2v":os.path.join(path_glove,"glove.840B.300d-w2v.txt"),
-            "840d300-folder":os.path.join(path_glove,"glove.840B.300d-spacy","")
+            "6d50":os.path.join(path_embeddings,"glove.6B.50d.txt"),
+            "6d50-w2v":os.path.join(path_embeddings,"glove.6B.50d-w2v.txt"),
+            "6d50-folder":os.path.join(path_embeddings,"glove.6B.50d-spacy",""),
+            "6d100":os.path.join(path_embeddings,"glove.6B.100d.txt"),
+            "6d100-w2v":os.path.join(path_embeddings,"glove.6B.100d-w2v.txt"),
+            "6d100-folder":os.path.join(path_embeddings,"glove.6B.100d-spacy",""),
+            "6d200":os.path.join(path_embeddings,"glove.6B.200d.txt"),
+            "6d200-w2v":os.path.join(path_embeddings,"glove.6B.200d-w2v.txt"),
+            "6d200-folder":os.path.join(path_embeddings,"glove.6B.200d-spacy",""),
+            "6d300":os.path.join(path_embeddings,"glove.6B.300d.txt"),
+            "6d300-w2v":os.path.join(path_embeddings,"glove.6B.300d-w2v.txt"),
+            "6d300-folder":os.path.join(path_embeddings,"glove.6B.300d-spacy",""),
+            "42d300":os.path.join(path_embeddings,"glove.42B.300d.txt"),
+            "42d300-w2v":os.path.join(path_embeddings,"glove.42B.300d-w2v.txt"),
+            "42d300-folder":os.path.join(path_embeddings,"glove.42B.300d-spacy",""),
+            "840d300":os.path.join(path_embeddings,"glove.840B.300d.txt"),
+            "840d300-w2v":os.path.join(path_embeddings,"glove.840B.300d-w2v.txt"),
+            "840d300-folder":os.path.join(path_embeddings,"glove.840B.300d-spacy",""),
+            "word2vec":os.path.join(path_embeddings,"GoogleNews-vectors-negative300.bin"),
+            "word2vec-w2v":os.path.join(path_embeddings,"word2vec.300d-w2v.txt"),
+            "word2vec-folder":os.path.join(path_embeddings,"word2vec-spacy","")
     }
     
     lengths = {
@@ -79,7 +83,8 @@ class GloveParser:
             "6d200":200,
             "6d300":300,
             "42d300":300,
-            "840d300":300
+            "840d300":300,
+            "word2vec":300
     }
     
     models = {}
@@ -93,7 +98,7 @@ class GloveParser:
         Loads a pre-trained word embedding to be used by this parser.
         
         Args:
-            model (str): The model used. One of {"6d50","6d100","6d200","6d300","42d300","840d300"}.
+            model (str): The model used. One of {"6d50","6d100","6d200","6d300","42d300","840d300", "word2vec"}.
         """
         try:
             self.nlp = spacy.load(self.paths[model + "-folder"])
@@ -101,17 +106,23 @@ class GloveParser:
             
         except OSError:
             if not os.path.isfile(self.paths[model + "-w2v"]):
-                from gensim.scripts.glove2word2vec import glove2word2vec
-                print("Word2Vec format not present, generating it.")
-                glove2word2vec(glove_input_file=self.paths[model], word2vec_output_file=self.paths[model + "-w2v"])
-            
-            #model += "-w2v"
-            
+                if model == "word2vec":
+                    print("Word2Vec format not present, generating it.")
+                    self.models[model] = KeyedVectors.load_word2vec_format(self.paths["word2vec"], binary=True)
+                    self.models[model].save_word2vec_format(self.paths[model + "-w2v"], binary=False)       
+                else:
+                    from gensim.scripts.glove2word2vec import glove2word2vec
+                    print("Word2Vec format not present, generating it.")
+                    glove2word2vec(glove_input_file=self.paths[model], word2vec_output_file=self.paths[model + "-w2v"])
+                        
             try:
                 self.current_model = self.models[model + "-w2v"]
                 self.length = self.lengths[model]
             except KeyError:
-                print("Glove not loaded yet, loading it.")
+                if model == "word2vec":
+                    print("Word2Vec not loaded yet, loading it.")
+                else:
+                    print("Glove not loaded yet, loading it.")
                 self.models[model + "-w2v"] = KeyedVectors.load_word2vec_format(self.paths[model + "-w2v"], binary=False)
                 self.current_model = self.models[model + "-w2v"]
                 self.length = self.lengths[model]
@@ -215,7 +226,7 @@ class GloveParser:
     
         
 ## Example:
-#parser = GloveParser()
+#parser = EmbeddingsParser()
 #parser.load_model("6d50")
 #test = parser.transform_vector("oi mate, what's going on?")
 #print(test.shape)
