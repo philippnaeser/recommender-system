@@ -72,8 +72,7 @@ class EmbeddingsParser:
             "840d300":os.path.join(path_embeddings,"glove.840B.300d.txt"),
             "840d300-w2v":os.path.join(path_embeddings,"glove.840B.300d-w2v.txt"),
             "840d300-folder":os.path.join(path_embeddings,"glove.840B.300d-spacy",""),
-            "word2vec":os.path.join(path_embeddings,"GoogleNews-vectors-negative300.bin"),
-            "word2vec-w2v":os.path.join(path_embeddings,"word2vec.300d-w2v.txt"),
+            "word2vec-w2v":os.path.join(path_embeddings,"GoogleNews-vectors-negative300.bin"),
             "word2vec-folder":os.path.join(path_embeddings,"word2vec-spacy","")
     }
     
@@ -106,14 +105,9 @@ class EmbeddingsParser:
             
         except OSError:
             if not os.path.isfile(self.paths[model + "-w2v"]):
-                if model == "word2vec":
-                    print("Word2Vec format not present, generating it.")
-                    self.models[model] = KeyedVectors.load_word2vec_format(self.paths["word2vec"], binary=True)
-                    self.models[model].save_word2vec_format(self.paths[model + "-w2v"], binary=False)       
-                else:
-                    from gensim.scripts.glove2word2vec import glove2word2vec
-                    print("Word2Vec format not present, generating it.")
-                    glove2word2vec(glove_input_file=self.paths[model], word2vec_output_file=self.paths[model + "-w2v"])
+                from gensim.scripts.glove2word2vec import glove2word2vec
+                print("Word2Vec format not present, generating it.")
+                glove2word2vec(glove_input_file=self.paths[model], word2vec_output_file=self.paths[model + "-w2v"])
                         
             try:
                 self.current_model = self.models[model + "-w2v"]
@@ -121,9 +115,11 @@ class EmbeddingsParser:
             except KeyError:
                 if model == "word2vec":
                     print("Word2Vec not loaded yet, loading it.")
+                    binary = True
                 else:
                     print("Glove not loaded yet, loading it.")
-                self.models[model + "-w2v"] = KeyedVectors.load_word2vec_format(self.paths[model + "-w2v"], binary=False)
+                    binary = False
+                self.models[model + "-w2v"] = KeyedVectors.load_word2vec_format(self.paths[model + "-w2v"], binary=binary)
                 self.current_model = self.models[model + "-w2v"]
                 self.length = self.lengths[model]
             
