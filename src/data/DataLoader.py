@@ -358,6 +358,16 @@ class DataLoader:
     def training_data(self, which="small"):
         if which == "small":
             return self.papers(["2013","2014","2015"]).conferences().conferenceseries()
+        elif which == "medium":
+            years = [
+                "2015",
+                "2014",
+                "2013",
+                "2012",
+                "2011",
+                "2009-2010"
+            ]
+            return self.papers(years).conferences().conferenceseries()
         else:
             years = self.parser.years.copy()
             years.remove(2016)
