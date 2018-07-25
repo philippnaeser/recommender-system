@@ -34,7 +34,7 @@ NET_NAME = "CNN-SJ-6d50-medium"
 BATCH_SIZE = 500                    # 300d: 150
 CHUNKS_IN_MEMORY = 5                # 300d: 3
 CHUNK_SIZE = 10000                  # 300d: 5000
-EPOCHS = 50
+EPOCHS = 10
 DATA_TRAIN = "medium"
 SHUFFLE_TRAIN = False
 DATA_TEST = "small"
@@ -92,7 +92,8 @@ class BatchifiedData(Dataset):
             "..",
             "..",
             "data",
-            "interim"
+            "interim",
+            "neuralnet_training"
     )
     
     def __del__(self):
@@ -404,7 +405,7 @@ class Net(nn.Module):
         torch.save(self.model_state, file)
         
     def load_state(self,optimizer):
-        self.model_state = torch.load()
+        self.model_state = torch.load(os.path.join(self.path_persistent,self.filename))
         
         self.load_state_dict(self.model_state["model"])
         optimizer.load_state_dict(self.model_state["optimizer"])
