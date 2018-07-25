@@ -26,13 +26,16 @@ import torch.backends.cudnn as cudnn
 cudnn.benchmark = True
 cudnn.fastest = True
 
-#### TRAINING PARAMETERS
+#### TRAINING PARAMETERS ####
 
-BATCH_SIZE = 500
-CHUNKS_IN_MEMORY = 10
-CHUNK_SIZE = 60000
+# set a name which is used as directory for the save states in "data/processed/nn/<name>"
+NET_NAME = "CNN-SJ-6d50-medium"
+
+BATCH_SIZE = 500                    # 300d: 150
+CHUNKS_IN_MEMORY = 5                # 300d: 3
+CHUNK_SIZE = 10000                  # 300d: 5000
 EPOCHS = 50
-DATA_TRAIN = "small"
+DATA_TRAIN = "medium"
 SHUFFLE_TRAIN = False
 DATA_TEST = "small"
 EMBEDDING_MODEL = "6d50"
@@ -43,7 +46,13 @@ WEIGHT_DECAY = 0.0005
 VERBOSE_EPOCHS = False
 VERBOSE_EPOCHS_STEPS = 10
 
-####
+# keep states of each epoch of the net
+KEEP_STATES = True
+
+# load the last saved state and continue training
+CONTINUE_TRAINING = True
+
+#############################
 
 class Timer:
     start_time = []
@@ -316,27 +325,35 @@ class Net(nn.Module):
             "..",
             "data",
             "processed",
-            "cnn",
-            "model-save-state"
+            "nn",
+            NET_NAME
     )
+    
+    filename = "model-save-state"
     
     def __init__(self,embedding_size,classes,filters=100):
         super(Net, self).__init__()
         
-        self.EMB = embedding_size
+        #create path for save states
+        if not os.path.isdir(self.path_persistent):
+            os.mkdir(self.path_persistent)
+            
+        self.training_time = 0
+        
+        self.embedding_size = embedding_size
         
         # 1 channel in, <filters> channels out
         self.conv1 = nn.Conv1d(1,filters,
-                               5*self.EMB,
-                               stride=1*self.EMB
+                               5*self.embedding_size,
+                               stride=1*self.embedding_size
         )
         self.conv2 = nn.Conv1d(1,filters,
-                               4*self.EMB,
-                               stride=1*self.EMB
+                               4*self.embedding_size,
+                               stride=1*self.embedding_size
         )
         self.conv3 = nn.Conv1d(1,filters,
-                               3*self.EMB,
-                               stride=1*self.EMB
+                               3*self.embedding_size,
+                               stride=1*self.embedding_size
         )
         #self.fc1 = nn.Linear(100,100)
         self.fc2 = nn.Linear(3*filters,classes)
@@ -372,20 +389,27 @@ class Net(nn.Module):
         
         return x#self.softmax(x)
     
-    def save_state(self,epoch,losses,optimizer):
+    def save_state(self,epoch,losses,optimizer,final=False):
         self.model_state = {
                     "epoch":epoch,
                     "losses":losses,
                     "model":self.state_dict(),
-                    "optimizer":optimizer.state_dict()
+                    "optimizer":optimizer.state_dict(),
+                    "training_time":self.training_time
         }
-        torch.save(self.model_state, self.path_persistent)
+        file = os.path.join(
+                self.path_persistent,
+                self.filename + ("" if final else ".e"+str(epoch))
+        )
+        torch.save(self.model_state, file)
         
     def load_state(self,optimizer):
-        self.model_state = torch.load(self.path_persistent)
+        self.model_state = torch.load()
         
         self.load_state_dict(self.model_state["model"])
         optimizer.load_state_dict(self.model_state["optimizer"])
+        if "training_time" in self.model_state:
+            self.training_time = self.model_state["training_time"]
         
         return self.model_state["epoch"], self.model_state["losses"]
     
@@ -396,9 +420,20 @@ class Net(nn.Module):
         plt.xlabel("Epoch")
         plt.ylabel("Loss")
         plt.grid(True)
-        plt.legend(["train","eval"])
+        plt.legend(["train","eval"],loc=3)
         plt.ylim(ymin=0,ymax=ymax+0.5)
         plt.show()
+        
+    def print_stats(self):
+        epchs = len(self.model_state["losses"][0])
+        time_by_epoch = self.training_time/epchs
+        print("Total number of epochs trained: {}, avg. time per epoch: {}.".format(epchs,time_by_epoch))
+        print("Total time trained: {}.".format(self.training_time))
+        
+    def save_state_exists(self):
+        return os.path.isfile(
+            os.path.join(self.path_persistent,self.filename)
+        )
         
         
 
@@ -440,6 +475,12 @@ optimizer = optim.Adadelta(
 
 losses_train = []
 losses_test = []
+epoch = 0
+
+if CONTINUE_TRAINING and net.save_state_exists():
+    epoch, [losses_train, losses_test] = net.load_state(optimizer)
+    epoch += 1
+    print("Continue training at epoch: {}".format(epoch))
 
 #for param in net.conv1.parameters():
 #    print(param)
@@ -447,7 +488,7 @@ losses_test = []
 print(">>> starting training")
 
 # batch data loading
-for epoch in range(EPOCHS):
+for epoch in range(epoch,epoch+EPOCHS):
     print("============ EPOCH {} ============".format(epoch))
     
     ### TRAINING
@@ -477,7 +518,7 @@ for epoch in range(EPOCHS):
         
     running_loss = running_loss/math.ceil(d_train.batch_total)
     print("Train ==> Epoch: {}, Loss: {}".format(epoch,running_loss))
-    timer.toc()
+    net.training_time += timer.toc()
     losses_train.append(running_loss)
     
     del outputs
@@ -509,12 +550,16 @@ for epoch in range(EPOCHS):
     print("Eval ==> Epoch: {}, Loss: {}".format(epoch,running_loss))
     timer.toc()
     losses_test.append(running_loss)
+    
+    if KEEP_STATES:
+        net.save_state(epoch,[losses_train,losses_test],optimizer)
 
-#save model state
-net.save_state(epoch,[losses_train,losses_test],optimizer)
+#save final model state
+net.save_state(epoch,[losses_train,losses_test],optimizer,True)
 
 # draw losses
 net.plot_losses()
+net.print_stats()
 
 #for param in net.conv1.parameters():
 #    print(param)
