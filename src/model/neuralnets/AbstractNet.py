@@ -50,11 +50,12 @@ class AbstractNet(nn.Module):
         )
         torch.save(self.model_state, file)
         
-    def load_state(self,optimizer):
+    def load_state(self,optimizer=None):
         self.model_state = torch.load(os.path.join(self.path_persistent,self.filename))
         
         self.load_state_dict(self.model_state["model"])
-        optimizer.load_state_dict(self.model_state["optimizer"])
+        if optimizer is not None:
+            optimizer.load_state_dict(self.model_state["optimizer"])
         if "training_time" in self.model_state:
             self.training_time = self.model_state["training_time"]
         
