@@ -7,45 +7,13 @@ Created on Fri Jul 13 20:30:27 2018
 """
 
 import os
-#import sys
-#sys.path.insert(0, os.path.join(os.getcwd(),"..","..","data"))
 from gensim.models.keyedvectors import KeyedVectors
 import spacy
 import numpy as np
 
-"""
-import time
-class Timer:
-    start_time = []
-    
-    ### start runtime check
-    def tic(self):
-        self.start_time.append(time.time())
-    
-    ### print runtime information
-    def toc(self):
-        print("Timer :: toc --- %s seconds ---" % (time.time() - self.start_time.pop()))
-        
-    def set_counter(self,c,max=100):
-        self.counter_max = c
-        self.counter = 0
-        self.checkpoint = int(self.counter_max/max)
-        self.step = self.checkpoint
-        self.tic()
-        
-    def count(self,add=1):
-        self.counter = self.counter + add
-        
-        if (self.counter > self.checkpoint):
-            print("Timer :: Checkpoint reached: {}%".format(int(self.counter*100/self.counter_max)))
-            self.toc()
-            self.tic()
-            self.checkpoint += self.step
-"""
-
 class EmbeddingsParser:
 
-    path_embeddings = os.path.join(
+    path_pretrained_embeddings = os.path.join(
             os.path.dirname(os.path.realpath(__file__)),
             "..",
             "..",
@@ -53,27 +21,48 @@ class EmbeddingsParser:
             "external"
     )
 
+    path_embeddings = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)),
+            "..",
+            "..",
+            "data",
+            "processed",
+            "word_embeddings"
+    )
+
+    
     paths = {
-            "6d50":os.path.join(path_embeddings,"glove.6B.50d.txt"),
-            "6d50-w2v":os.path.join(path_embeddings,"glove.6B.50d-w2v.txt"),
-            "6d50-folder":os.path.join(path_embeddings,"glove.6B.50d-spacy",""),
-            "6d100":os.path.join(path_embeddings,"glove.6B.100d.txt"),
-            "6d100-w2v":os.path.join(path_embeddings,"glove.6B.100d-w2v.txt"),
-            "6d100-folder":os.path.join(path_embeddings,"glove.6B.100d-spacy",""),
-            "6d200":os.path.join(path_embeddings,"glove.6B.200d.txt"),
-            "6d200-w2v":os.path.join(path_embeddings,"glove.6B.200d-w2v.txt"),
-            "6d200-folder":os.path.join(path_embeddings,"glove.6B.200d-spacy",""),
-            "6d300":os.path.join(path_embeddings,"glove.6B.300d.txt"),
-            "6d300-w2v":os.path.join(path_embeddings,"glove.6B.300d-w2v.txt"),
-            "6d300-folder":os.path.join(path_embeddings,"glove.6B.300d-spacy",""),
-            "42d300":os.path.join(path_embeddings,"glove.42B.300d.txt"),
-            "42d300-w2v":os.path.join(path_embeddings,"glove.42B.300d-w2v.txt"),
-            "42d300-folder":os.path.join(path_embeddings,"glove.42B.300d-spacy",""),
-            "840d300":os.path.join(path_embeddings,"glove.840B.300d.txt"),
-            "840d300-w2v":os.path.join(path_embeddings,"glove.840B.300d-w2v.txt"),
-            "840d300-folder":os.path.join(path_embeddings,"glove.840B.300d-spacy",""),
-            "word2vec-w2v":os.path.join(path_embeddings,"GoogleNews-vectors-negative300.bin"),
-            "word2vec-folder":os.path.join(path_embeddings,"word2vec-spacy","")
+            "6d50":os.path.join(path_pretrained_embeddings,"glove.6B.50d.txt"),
+            "6d50-w2v":os.path.join(path_pretrained_embeddings,"glove.6B.50d-w2v.txt"),
+            "6d50-folder":os.path.join(path_pretrained_embeddings,"glove.6B.50d-spacy",""),
+            "6d100":os.path.join(path_pretrained_embeddings,"glove.6B.100d.txt"),
+            "6d100-w2v":os.path.join(path_pretrained_embeddings,"glove.6B.100d-w2v.txt"),
+            "6d100-folder":os.path.join(path_pretrained_embeddings,"glove.6B.100d-spacy",""),
+            "6d200":os.path.join(path_pretrained_embeddings,"glove.6B.200d.txt"),
+            "6d200-w2v":os.path.join(path_pretrained_embeddings,"glove.6B.200d-w2v.txt"),
+            "6d200-folder":os.path.join(path_pretrained_embeddings,"glove.6B.200d-spacy",""),
+            "6d300":os.path.join(path_pretrained_embeddings,"glove.6B.300d.txt"),
+            "6d300-w2v":os.path.join(path_pretrained_embeddings,"glove.6B.300d-w2v.txt"),
+            "6d300-folder":os.path.join(path_pretrained_embeddings,"glove.6B.300d-spacy",""),
+            "42d300":os.path.join(path_pretrained_embeddings,"glove.42B.300d.txt"),
+            "42d300-w2v":os.path.join(path_pretrained_embeddings,"glove.42B.300d-w2v.txt"),
+            "42d300-folder":os.path.join(path_pretrained_embeddings,"glove.42B.300d-spacy",""),
+            "840d300":os.path.join(path_pretrained_embeddings,"glove.840B.300d.txt"),
+            "840d300-w2v":os.path.join(path_pretrained_embeddings,"glove.840B.300d-w2v.txt"),
+            "840d300-folder":os.path.join(path_pretrained_embeddings,"glove.840B.300d-spacy",""),
+            "word2vec-w2v":os.path.join(path_pretrained_embeddings,"GoogleNews-vectors-negative300.bin"),
+            "word2vec-folder":os.path.join(path_pretrained_embeddings,"word2vec-spacy",""),
+            "fasttext-w2v": os.path.join(path_pretrained_embeddings, "wiki-news-300d-1M.vec"),
+            "fasttext-folder":os.path.join(path_pretrained_embeddings, "fasttext-spacy",""),
+            "w2v_50d_w5_CBOW_HS-w2v":os.path.join(path_embeddings, "w2v_50d_w5_CBOW_HS.bin"),
+            "w2v_50d_w5_CBOW_HS-folder":os.path.join(path_embeddings, "w2v_50d_w5_CBOW_HS-spacy",""),
+            "w2v_50d_w5_CBOW_NS-w2v":os.path.join(path_embeddings, "w2v_50d_w5_CBOW_NS.bin"),
+            "w2v_50d_w5_CBOW_NS-folder":os.path.join(path_embeddings, "w2v_50d_w5_CBOW_NS-spacy",""),
+            "w2v_50d_w10_SG_HS-w2v":os.path.join(path_embeddings, "w2v_50d_w10_SG_HS.bin"),
+            "w2v_50d_w10_SG_HS-folder":os.path.join(path_embeddings, "w2v_50d_w10_SG_HS-spacy",""),
+            "w2v_50d_w10_SG_NS-w2v":os.path.join(path_embeddings, "w2v_50d_w10_SG_NS.bin"),
+            "w2v_50d_w10_SG_NS-folder":os.path.join(path_embeddings, "w2v_50d_w10_SG_NS-spacy","")
+            
     }
     
     lengths = {
@@ -83,28 +72,35 @@ class EmbeddingsParser:
             "6d300":300,
             "42d300":300,
             "840d300":300,
-            "word2vec":300
+            "word2vec":300,
+            "fasttext": 300,
+            "w2v_50d_w5_CBOW_HS":50,
+            "w2v_50d_w5_CBOW_NS":50,
+            "w2v_50d_w10_SG_HS":50,
+            "w2v_50d_w10_SG_NS":50,
     }
     
     models = {}
     
     nlp = spacy.load("en",vectors=False)
-    
-    #timer = Timer()
-    
-    def load_model(self,model):
+        
+    def load_model(self, model, pretrained = True):
         """
         Loads a pre-trained word embedding to be used by this parser.
         
         Args:
-            model (str): The model used. One of {"6d50","6d100","6d200","6d300","42d300","840d300", "word2vec"}.
+            model (str): The model used. 
+                One of pretrained {"6d50","6d100","6d200","6d300","42d300","840d300", "word2vec", "fasttext"}.
+                One of the models trained on the abstracts' text data.
+            
+            pretrained(bool): Whether the used embeddings are pretrained or not.
         """
         try:
             self.nlp = spacy.load(self.paths[model + "-folder"])
             self.length = self.lengths[model]
             
         except OSError:
-            if not os.path.isfile(self.paths[model + "-w2v"]):
+            if not os.path.isfile(self.paths[model + "-w2v"]) and pretrained:
                 from gensim.scripts.glove2word2vec import glove2word2vec
                 print("Word2Vec format not present, generating it.")
                 glove2word2vec(glove_input_file=self.paths[model], word2vec_output_file=self.paths[model + "-w2v"])
@@ -113,13 +109,21 @@ class EmbeddingsParser:
                 self.current_model = self.models[model + "-w2v"]
                 self.length = self.lengths[model]
             except KeyError:
-                if model == "word2vec":
-                    print("Word2Vec not loaded yet, loading it.")
-                    binary = True
+                if pretrained:
+                    if model == "fasttext":
+                        print("FastText not loaded yet, loading it.")
+                        binary = False
+                    elif model == "word2vec":
+                        print("Word2Vec not loaded yet, loading it.")
+                        binary = True
+                    else:
+                        print("Glove not loaded yet, loading it.")
+                        binary = False
                 else:
-                    print("Glove not loaded yet, loading it.")
-                    binary = False
-                self.models[model + "-w2v"] = KeyedVectors.load_word2vec_format(self.paths[model + "-w2v"], binary=binary)
+                    print("Pretrained model not loaded yet, loading it.")
+                    binary = True
+                
+                self.models[model + "-w2v"] = KeyedVectors.load_word2vec_format(self.paths[model + "-w2v"], binary=binary)             
                 self.current_model = self.models[model + "-w2v"]
                 self.length = self.lengths[model]
             

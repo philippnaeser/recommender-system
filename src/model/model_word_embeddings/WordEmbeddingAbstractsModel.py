@@ -22,9 +22,10 @@ class WordEmbeddingAbstractsModel(AbstractModel):
     )
 
     ##########################################
-    def __init__(self, recs=10):
+    def __init__(self, pretrained = True, recs=10):
         self.stopList = stopwords.words('english')  
         self.parser = EmbeddingsParser()
+        self.pretrained = pretrained
         
         # number of recommendations to return
         self.recs = recs
@@ -98,7 +99,7 @@ class WordEmbeddingAbstractsModel(AbstractModel):
                     raise IndexError("Column '{}' not contained in given DataFrame.".format(check))
                     
             self.data = data
-            self.parser.load_model(embedding_model)
+            self.parser.load_model(embedding_model, self.pretrained)
             self.embedded_matrix = self.parser.transform_avg_vectors(
                     self._remove_stopwords(
                             data.chapter_abstract.str.decode("unicode_escape")
@@ -126,7 +127,6 @@ class WordEmbeddingAbstractsModel(AbstractModel):
     
     ##########################################
     def _load_model(self):
-        pass
         if os.path.isfile(WordEmbeddingAbstractsModel.persistent_file):
             print("Loading persistent models: Embedded matrix")
             with open(WordEmbeddingAbstractsModel.persistent_file,"rb") as f:

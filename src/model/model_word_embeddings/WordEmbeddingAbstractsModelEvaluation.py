@@ -72,8 +72,12 @@ if __name__ == '__main__':
         )
         d_train.make_persistent(filename)
     
-    model = WordEmbeddingAbstractsModel()
-    embedding_model = "6d100"  #One of {"6d50","6d100","6d200","6d300","42d300","840d300", "word2vec"}.
+    model = WordEmbeddingAbstractsModel(pretrained = False)
+    
+    #One of the pretrained {"6d50","6d100","6d200","6d300","42d300","840d300", "word2vec", "fasttext"}.
+    #One of the models trained on the abstracts' text data.
+    embedding_model = "w2v_50d_w5_CBOW_HS"  
+    
     model.train(d_train.data, embedding_model)
     
     ### load test data if it is already pickled, otherwise create it from scratch
