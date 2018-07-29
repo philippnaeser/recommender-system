@@ -76,7 +76,7 @@ if __name__ == '__main__':
     
     #One of the pretrained {"6d50","6d100","6d200","6d300","42d300","840d300", "word2vec", "fasttext"}.
     #One of the models trained on the abstracts' text data.
-    embedding_model = "w2v_50d_w5_CBOW_HS"  
+    embedding_model = "w2v_100d_w10_SG_NS"  
     
     model.train(d_train.data, embedding_model)
     

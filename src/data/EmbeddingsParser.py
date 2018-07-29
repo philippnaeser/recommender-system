@@ -114,8 +114,8 @@ class EmbeddingsParser:
             "ft_50d_w3_SG_NS":50,
             "ft_50d_w4_SG_NS":50,
             "ft_50d_w5_SG_NS":50,
-            "ft_100d_w5_SG_NS":50,
-            "ft_150d_w5_SG_NS":50
+            "ft_100d_w5_SG_NS":100,
+            "ft_150d_w5_SG_NS":150
     }
     
     models = {}
@@ -260,11 +260,10 @@ class EmbeddingsParser:
             vectors.append(m/len(doc))
             
         return vectors
-    
-    
+       
         
 ## Example:
 #parser = EmbeddingsParser()
 #parser.load_model("6d50")
-#test = parser.transform_vector("oi mate, what's going on?")
+#test = parser.transform_vector("This is a sentence.")
 #print(test.shape)

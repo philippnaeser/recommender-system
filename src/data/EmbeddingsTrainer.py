@@ -26,23 +26,17 @@ DATA_TRAIN = "all"
                 
 # set a name which is used as directory for the saved models 
 # and word vectors in "data/processed/word_embeddings/<name>"
-EMBEDDING_NAME = "w2v_50d_w5_CBOW_HS" 
+EMBEDDING_NAME = "w2v_100d_w10_SG_NS" 
 
 #The model used. One of {"word2vec","fasttext"}
 EMBEDDING_MODEL = "word2vec"
-SIZE = 50
-WINDOW = 5
+SIZE = 100
+WINDOW = 10
 MIN_COUNT = 2
 WORKERS= 20
-
-#Architecture: skip-gram if sg=1, otherwise CBOW.
-SG = 0
-
-#Training algorithm: If 1, hierarchical softmax will be used for model training. 
-#If 0, and negative is non-zero, negative sampling will be used
-HS = 1
-
-ITER = 1
+SG = 1
+HS = 0
+ITER = 10
 
 class EmbeddingsTrainer():
     
@@ -62,18 +56,26 @@ class EmbeddingsTrainer():
             "wordvectors":os.path.join(self.path_persistent, embedding_name + ".bin")
             }
         
-        embedder = EmbeddingsData(data_which)
-        self.sentences = embedder.getTrainingData()
+        parser = EmbeddingsData(data_which)
+        self.sentences = parser.getTrainingData()
         self.timer = Timer()
             
     def train_model(self, embedding_model="word2vec", 
-                    size = 50, window = 10, min_count = 5, 
-                    workers = 10, sg = 0, hs = 1, iterations = 10):
+                    size = 100, window = 10, min_count = 2, 
+                    workers = 20, sg = 1, hs = 0, iterations = 10):
         """
         Trains a word embeddings model.
         
         Args:
-            model (str): The model used. One of {"word2vec","fasttext"}.
+            embedding_model (str): The model used. One of {"word2vec","fasttext"}.
+            size (int): Dimensionality of the word vectors.
+            window (int):  Maximum distance between the current and predicted word within a sentence.
+            min_count (int): Ignores all words with lower frequency than this.
+            workers (int): Number of worker threads to train the model.
+            sg (int):  Training algorithm: 1 for skip-gram; otherwise CBOW.
+            hs (int): If 1, hierarchical softmax will be used for model training. 
+                If 0, and negative is non-zero, negative sampling will be used.
+            iterations (int): Number of iterations (epochs) over the corpus.
         """
         
         if os.path.isfile(self.paths["model"]):
@@ -133,18 +135,18 @@ class EmbeddingsTrainer():
                     binary = True
                     )
         
-# Example:
-trainer = EmbeddingsTrainer(
-        embedding_name = EMBEDDING_NAME,
-        data_which = DATA_TRAIN
-        )
-trainer.train_model(
-        embedding_model = EMBEDDING_MODEL,
-        size = SIZE,
-        window = WINDOW,
-        min_count = MIN_COUNT,
-        workers = WORKERS,
-        sg = SG,
-        hs = HS,
-        iterations = ITER 
-        )
+## Example:
+#trainer = EmbeddingsTrainer(
+#        embedding_name = EMBEDDING_NAME,
+#        data_which = DATA_TRAIN
+#        )
+#trainer.train_model(
+#        embedding_model = EMBEDDING_MODEL,
+#        size = SIZE,
+#        window = WINDOW,
+#        min_count = MIN_COUNT,
+#        workers = WORKERS,
+#        sg = SG,
+#        hs = HS,
+#        iterations = ITER 
+#        )
