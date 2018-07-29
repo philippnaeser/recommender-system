@@ -61,8 +61,33 @@ class EmbeddingsParser:
             "w2v_50d_w10_SG_HS-w2v":os.path.join(path_embeddings, "w2v_50d_w10_SG_HS.bin"),
             "w2v_50d_w10_SG_HS-folder":os.path.join(path_embeddings, "w2v_50d_w10_SG_HS-spacy",""),
             "w2v_50d_w10_SG_NS-w2v":os.path.join(path_embeddings, "w2v_50d_w10_SG_NS.bin"),
-            "w2v_50d_w10_SG_NS-folder":os.path.join(path_embeddings, "w2v_50d_w10_SG_NS-spacy","")
-            
+            "w2v_50d_w10_SG_NS-folder":os.path.join(path_embeddings, "w2v_50d_w10_SG_NS-spacy",""),
+            "w2v_100d_w10_SG_NS-w2v":os.path.join(path_embeddings, "w2v_100d_w10_SG_NS.bin"),
+            "w2v_100d_w10_SG_NS-folder":os.path.join(path_embeddings, "w2v_100d_w10_SG_NS-spacy",""),
+            "w2v_100d_w10_SG_HS-w2v":os.path.join(path_embeddings, "w2v_100d_w10_SG_HS.bin"),
+            "w2v_100d_w10_SG_HS-folder":os.path.join(path_embeddings, "w2v_100d_w10_SG_HS-spacy",""),
+            "w2v_150d_w10_SG_NS-w2v":os.path.join(path_embeddings, "w2v_150d_w10_SG_NS.bin"),
+            "w2v_150d_w10_SG_NS-folder":os.path.join(path_embeddings, "w2v_150d_w10_SG_NS-spacy",""),
+            "w2v_300d_w10_SG_NS-w2v":os.path.join(path_embeddings, "w2v_300d_w10_SG_NS.bin"),
+            "w2v_300d_w10_SG_NS-folder":os.path.join(path_embeddings, "w2v_300d_w10_SG_NS-spacy",""),
+            "ft_50d_w2_CBOW_HS-w2v":os.path.join(path_embeddings, "ft_50d_w2_CBOW_HS.bin"),
+            "ft_50d_w2_CBOW_HS-folder":os.path.join(path_embeddings, "ft_50d_w2_CBOW_HS-spacy",""),
+            "ft_50d_w2_CBOW_NS-w2v":os.path.join(path_embeddings, "ft_50d_w2_CBOW_NS.bin"),
+            "ft_50d_w2_CBOW_NS-folder":os.path.join(path_embeddings, "ft_50d_w2_CBOW_NS-spacy",""),
+            "ft_50d_w2_SG_HS-w2v":os.path.join(path_embeddings, "ft_50d_w2_SG_HS.bin"),
+            "ft_50d_w2_SG_HS-folder":os.path.join(path_embeddings, "ft_50d_w2_SG_HS-spacy",""),
+            "ft_50d_w2_SG_NS-w2v":os.path.join(path_embeddings, "ft_50d_w2_SG_NS.bin"),
+            "ft_50d_w2_SG_NS-folder":os.path.join(path_embeddings, "ft_50d_w2_SG_NS-spacy",""),
+            "ft_50d_w3_SG_NS-w2v":os.path.join(path_embeddings, "ft_50d_w3_SG_NS.bin"),
+            "ft_50d_w3_SG_NS-folder":os.path.join(path_embeddings, "ft_50d_w3_SG_NS-spacy",""),
+            "ft_50d_w4_SG_NS-w2v":os.path.join(path_embeddings, "ft_50d_w4_SG_NS.bin"),
+            "ft_50d_w4_SG_NS-folder":os.path.join(path_embeddings, "ft_50d_w4_SG_NS-spacy",""),
+            "ft_50d_w5_SG_NS-w2v":os.path.join(path_embeddings, "ft_50d_w5_SG_NS.bin"),
+            "ft_50d_w5_SG_NS-folder":os.path.join(path_embeddings, "ft_50d_w5_SG_NS-spacy",""),
+            "ft_100d_w5_SG_NS-w2v":os.path.join(path_embeddings, "ft_100d_w5_SG_NS.bin"),
+            "ft_100d_w5_SG_NS-folder":os.path.join(path_embeddings, "ft_100d_w5_SG_NS-spacy",""),
+            "ft_150d_w5_SG_NS-w2v":os.path.join(path_embeddings, "ft_150d_w5_SG_NS.bin"),
+            "ft_150d_w5_SG_NS-folder":os.path.join(path_embeddings, "ft_150d_w5_SG_NS-spacy","")            
     }
     
     lengths = {
@@ -78,11 +103,24 @@ class EmbeddingsParser:
             "w2v_50d_w5_CBOW_NS":50,
             "w2v_50d_w10_SG_HS":50,
             "w2v_50d_w10_SG_NS":50,
+            "w2v_100d_w10_SG_NS":100,
+            "w2v_100d_w10_SG_HS":100,
+            "w2v_150d_w10_SG_NS":150,
+            "w2v_300d_w10_SG_NS":300,
+            "ft_50d_w2_CBOW_HS":50,
+            "ft_50d_w2_CBOW_NS":50,
+            "ft_50d_w2_SG_HS":50,
+            "ft_50d_w2_SG_NS":50,
+            "ft_50d_w3_SG_NS":50,
+            "ft_50d_w4_SG_NS":50,
+            "ft_50d_w5_SG_NS":50,
+            "ft_100d_w5_SG_NS":50,
+            "ft_150d_w5_SG_NS":50
     }
     
     models = {}
     
-    nlp = spacy.load("en",vectors=False)
+    nlp = spacy.load("en", vectors=False)
         
     def load_model(self, model, pretrained = True):
         """
@@ -120,7 +158,7 @@ class EmbeddingsParser:
                         print("Glove not loaded yet, loading it.")
                         binary = False
                 else:
-                    print("Pretrained model not loaded yet, loading it.")
+                    print("Model not loaded yet, loading it.")
                     binary = True
                 
                 self.models[model + "-w2v"] = KeyedVectors.load_word2vec_format(self.paths[model + "-w2v"], binary=binary)             
