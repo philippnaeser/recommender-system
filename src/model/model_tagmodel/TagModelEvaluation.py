@@ -18,20 +18,20 @@ from TagModel import TagModel
 """
 #Training part
 d = DataLoader()
-d.papers(["2013","2014","2015"]).conferences().keywords()
+d.papers(["2013","2014","2015"]).conferences().conferenceseries().keywords()
 
-data_train = d.data.loc[:, ["conference_name", "keyword_label"]]
-data_train.columns = ["conference_name", "tag_name"]
+data_train = d.data.loc[:, ["conferenceseries", "keyword_label"]]
+data_train.columns = ["conferenceseries", "tag_name"]
 
 model = TagModel()
 model.train(data_train)
 
 #Test Part
 d = DataLoader()
-d.papers(["2016"]).conferences().keywords()
+d.papers(["2016"]).conferences().conferenceseries().keywords()
 
-data_test = d.data.loc[:, ["conference_name", "keyword_label"]]
-data_test.columns = ["conference_name", "tag_name"]
+data_test = d.data.loc[:, ["conferenceseries", "keyword_label"]]
+data_test.columns = ["conferenceseries", "tag_name"]
 
 model_test = TagModel()
 model_test.train(data_test)
