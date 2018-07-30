@@ -112,12 +112,12 @@ class LSAAbstractsModel(AbstractModel):
     def train(self, data, dimensions):
         if not self._load_model_x():
             print("Stem matrix not persistent yet. Creating now.")
-            for check in ["chapter_abstract","conference","conference_name", "conferenceseries"]:
+            for check in ["chapter_abstract", "conferenceseries"]:
                 if not check in data.columns:
                     raise IndexError("Column '{}' not contained in given DataFrame.".format(check))
             
             self.data = data
-            self.stem_matrix = self.stem_vectorizer.fit_transform(data.chapter_abstract.str.decode("unicode_escape"))
+            self.stem_matrix = self.stem_vectorizer.fit_transform(data.chapter_abstract)
             self._save_model_x()
             
         if not self._load_model_factors():
