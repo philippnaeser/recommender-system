@@ -102,7 +102,7 @@ class EmbeddingsData():
                 line += 1
             count_lines += line
             
-        print("Finsihed transforming {} abstracts with {} lines.".format(
+        print("Finished transforming {} abstracts with {} lines.".format(
                 len(self.training_data), count_lines))
                 
         return text
@@ -112,5 +112,5 @@ class EmbeddingsData():
         return self.sentences
     
 ##Example
-#embedder = EmbeddingsData(data_which = DATA_TRAIN)
-#train_inputs = embedder.getTrainingData()
+#parser = EmbeddingsData(data_which = DATA_TRAIN)
+#train_inputs = parser.getTrainingData()

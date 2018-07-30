@@ -47,7 +47,7 @@ class WordEmbeddingAbstractsModel(AbstractModel):
         sim = 1-cdist(transformed_q_v, self.embedded_matrix, "cosine")
         o = np.argsort(-sim)
         return [
-                list(self.data.iloc[o][0:self.recs].conference_name),
+                list(self.data.iloc[o][0:self.recs].conferenceseries),
                 sim[o][0:self.recs]
                 ]
     
@@ -79,7 +79,7 @@ class WordEmbeddingAbstractsModel(AbstractModel):
         self.count_init(len(o))
         for order in o:
             conference.append(
-                    list(self.data.iloc[order][0:self.recs].conference_name)
+                    list(self.data.iloc[order][0:self.recs].conferenceseries)
             )
             confidence.append(
                     sim[index][order][0:self.recs]
@@ -94,7 +94,7 @@ class WordEmbeddingAbstractsModel(AbstractModel):
     def train(self, data, embedding_model):
         if not self._load_model():
             print("Embedded matrix not persistent yet. Creating now.")
-            for check in ["chapter_abstract","conference","conference_name"]:
+            for check in ["chapter_abstract","conference","conference_name", "conferenceseries"]:
                 if not check in data.columns:
                     raise IndexError("Column '{}' not contained in given DataFrame.".format(check))
                     
