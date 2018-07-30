@@ -64,15 +64,15 @@ if __name__ == '__main__':
     
     d_train = DataLoader()
     if not d_train.get_persistent(filename):
-        d_train.papers(["2013","2014","2015"]).abstracts().conferences()
-        d_train.data = d_train.data[["chapter","chapter_abstract","conference","conference_name"]].copy()
+        d_train.papers(["2013","2014","2015"]).abstracts().conferences().conferenceseries()
+        d_train.data = d_train.data[["chapter","chapter_abstract","conference","conference_name", "conferenceseries"]].copy()
         d_train.data.drop(
             list(d_train.data[pd.isnull(d_train.data.chapter_abstract)].index),
             inplace=True
         )
         d_train.make_persistent(filename)
     
-    model = WordEmbeddingAbstractsModel(pretrained = False)
+    model = WordEmbeddingAbstractsModel(pretrained = True)
     
     #One of the pretrained {"6d50","6d100","6d200","6d300","42d300","840d300", "word2vec", "fasttext"}.
     #One of the models trained on the abstracts' text data.
@@ -86,8 +86,8 @@ if __name__ == '__main__':
     
     d_test = DataLoader()
     if not d_test.get_persistent(filename):
-        d_test.papers(["2016"]).abstracts().conferences()
-        d_test.data = d_test.data[["chapter","chapter_abstract","conference","conference_name"]].copy()
+        d_test.papers(["2016"]).abstracts().conferences().conferenceseries()
+        d_test.data = d_test.data[["chapter","chapter_abstract","conference","conference_name", "conferenceseries"]].copy()
         d_test.data.drop(
             list(d_test.data[pd.isnull(d_test.data.chapter_abstract)].index),
             inplace=True
@@ -100,7 +100,7 @@ if __name__ == '__main__':
     conferences_truth = list()
     confidences_truth = list()
     
-    for conference in list(d_test.data.conference_name):
+    for conference in list(d_test.data.conferenceseries):
         conferences_truth.append([conference])
         confidences_truth.append([1])
         

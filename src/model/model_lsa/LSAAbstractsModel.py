@@ -60,7 +60,7 @@ class LSAAbstractsModel(AbstractModel):
         o = np.argsort(-sim)
         print(self.data.iloc[o[0]].chapter_abstract)
         return [
-                list(self.data.iloc[o][0:self.recs].conference_name),
+                list(self.data.iloc[o][0:self.recs].conferenceseries),
                 sim[o][0:self.recs]
                 ]
     
@@ -97,7 +97,7 @@ class LSAAbstractsModel(AbstractModel):
         self.count_init(len(o))
         for order in o:
             conference.append(
-                    list(self.data.iloc[order][0:self.recs].conference_name)
+                    list(self.data.iloc[order][0:self.recs].conferenceseries)
             )
             confidence.append(
                     sim[index][order][0:self.recs]
@@ -112,7 +112,7 @@ class LSAAbstractsModel(AbstractModel):
     def train(self, data, dimensions):
         if not self._load_model_x():
             print("Stem matrix not persistent yet. Creating now.")
-            for check in ["chapter_abstract","conference","conference_name"]:
+            for check in ["chapter_abstract","conference","conference_name", "conferenceseries"]:
                 if not check in data.columns:
                     raise IndexError("Column '{}' not contained in given DataFrame.".format(check))
             
