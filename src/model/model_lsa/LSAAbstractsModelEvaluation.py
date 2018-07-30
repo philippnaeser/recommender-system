@@ -67,15 +67,16 @@ if __name__ == '__main__':
     d_train = DataLoader()
     if not d_train.get_persistent(filename):
         d_train.papers(["2013","2014","2015"]).abstracts().conferences().conferenceseries()
-        d_train.data = d_train.data[["chapter","chapter_abstract","conference","conference_name", "conferenceseries"]].copy()
+        d_train.data = d_train.data[["chapter_abstract", "conferenceseries"]].copy()
         d_train.data.drop(
             list(d_train.data[pd.isnull(d_train.data.chapter_abstract)].index),
             inplace=True
         )
+        d_train.data.chapter_abstract = d_train.data.chapter_abstract.str.decode("unicode_escape")
         d_train.make_persistent(filename)
     
     model = LSAAbstractsModel()
-    dimensions = 300
+    dimensions = 500
     model.train(d_train.data, dimensions)
      
     ### load test data if it is already pickled, otherwise create it from scratch
@@ -90,11 +91,12 @@ if __name__ == '__main__':
             list(d_test.data[pd.isnull(d_test.data.chapter_abstract)].index),
             inplace=True
         )
+        d_test.data.chapter_abstract = d_test.data.chapter_abstract.str.decode("unicode_escape")
         d_test.make_persistent(filename)
 
     ### create test query and truth values
 
-    query_test = list(d_test.data.chapter_abstract.str.decode("unicode_escape"))#[0:1000]
+    query_test = list(d_test.data.chapter_abstract)#[0:1000]
     
     conferences_truth = list()
     confidences_truth = list()

@@ -94,16 +94,14 @@ class WordEmbeddingAbstractsModel(AbstractModel):
     def train(self, data, embedding_model):
         if not self._load_model():
             print("Embedded matrix not persistent yet. Creating now.")
-            for check in ["chapter_abstract","conference","conference_name", "conferenceseries"]:
+            for check in ["chapter_abstract", "conferenceseries"]:
                 if not check in data.columns:
                     raise IndexError("Column '{}' not contained in given DataFrame.".format(check))
                     
             self.data = data
             self.parser.load_model(embedding_model, self.pretrained)
             self.embedded_matrix = self.parser.transform_avg_vectors(
-                    self._remove_stopwords(
-                            data.chapter_abstract.str.decode("unicode_escape")
-                            )
+                    self._remove_stopwords(data.chapter_abstract)
                     )
             self.embedded_matrix = np.asarray(self.embedded_matrix)
             self._save_model()
