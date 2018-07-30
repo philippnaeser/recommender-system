@@ -12,7 +12,6 @@ from nltk.stem.porter import PorterStemmer
 from sklearn.metrics.pairwise import cosine_similarity
 import re
 import os
-import sys
 import pickle
 
 class TfIdfAbstractsModel(AbstractModel):
@@ -52,7 +51,7 @@ class TfIdfAbstractsModel(AbstractModel):
         #print(self.data.chapter_abstract[o][0:10])
         print(self.data.iloc[o[0]].chapter_abstract)
         return [
-                list(self.data.iloc[o][0:self.recs].conference_name),
+                list(self.data.iloc[o][0:self.recs].conferenceseries),
                 sim[o][0:self.recs]
                 ]
     
@@ -85,7 +84,7 @@ class TfIdfAbstractsModel(AbstractModel):
         
         for order in o:
             conferences.append(
-                    list(self.data.iloc[order][0:self.recs].conference_name)
+                    list(self.data.iloc[order][0:self.recs].conferenceseries)
             )
             confidences.append(
                     
@@ -101,12 +100,12 @@ class TfIdfAbstractsModel(AbstractModel):
         if not self._load_model():
             print("Model not persistent yet. Creating model.")
             #for check in ["abstract","conference","conference_name"]:
-            for check in ["chapter_abstract","conference","conference_name"]:
+            for check in ["chapter_abstract","conferenceseries"]:
                 if not check in data.columns:
                     raise IndexError("Column '{}' not contained in given DataFrame.".format(check))
             
             self.data = data
-            self.stem_matrix = self.stem_vectorizer.fit_transform(data.chapter_abstract.str.decode("unicode_escape"))
+            self.stem_matrix = self.stem_vectorizer.fit_transform(data.chapter_abstract)
             self._save_model()
             #print(self.stem_matrix)
         

@@ -62,12 +62,13 @@ if __name__ == '__main__':
     
     d_train = DataLoader()
     if not d_train.get_persistent(filename):
-        d_train.papers(["2013","2014","2015"]).abstracts().conferences()
-        d_train.data = d_train.data[["chapter","chapter_abstract","conference","conference_name"]].copy()
+        d_train.training_data("small").abstracts()
+        d_train.data = d_train.data[["chapter_abstract","conferenceseries"]].copy()
         d_train.data.drop(
             list(d_train.data[pd.isnull(d_train.data.chapter_abstract)].index),
             inplace=True
         )
+        d_train.data.chapter_abstract = d_train.data.chapter_abstract.str.decode("unicode_escape")
         d_train.make_persistent(filename)
     
     model = TfIdfAbstractsModel()
@@ -79,12 +80,13 @@ if __name__ == '__main__':
     
     d_test = DataLoader()
     if not d_test.get_persistent(filename):
-        d_test.papers(["2016"]).abstracts().conferences()
-        d_test.data = d_test.data[["chapter","chapter_abstract","conference","conference_name"]].copy()
+        d_test.test_data("small").abstracts()
+        d_test.data = d_test.data[["chapter_abstract","conferenceseries"]].copy()
         d_test.data.drop(
             list(d_test.data[pd.isnull(d_test.data.chapter_abstract)].index),
             inplace=True
         )
+        d_test.data.chapter_abstract = d_test.data.chapter_abstract.str.decode("unicode_escape")
         d_test.make_persistent(filename)
 
     ### create test query and truth values
@@ -94,7 +96,7 @@ if __name__ == '__main__':
     conferences_truth = list()
     confidences_truth = list()
     
-    for conference in list(d_test.data.conference_name):
+    for conference in list(d_test.data.conferenceseries):
         conferences_truth.append([conference])
         confidences_truth.append([1])
         
