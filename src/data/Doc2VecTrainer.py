@@ -5,20 +5,10 @@ Created on Sun Jul 29 11:32:08 2018
 @author: Andreea
 """
 
-import sys
 import os
-
-sys.path.insert(0, os.path.join(os.getcwd()))
-sys.path.insert(0, os.path.join(os.getcwd(),".."))
-sys.path.insert(0, os.path.join(os.getcwd(), "..", "model"))
-sys.path.insert(0, os.path.join(os.getcwd(),"..", "..", "neuralnets"))
-
 from Doc2VecData import Doc2VecData
-from TimerCounter import Timer
 from gensim.models.doc2vec import Doc2Vec
-import random
 import logging
-from gensim.models.keyedvectors import Doc2VecKeyedVectors
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
 
@@ -29,7 +19,7 @@ DATA_TRAIN = "all"
                 
 # set a name which is used as directory for the saved models 
 # and word vectors in "data/processed/word_embeddings/<name>"
-EMBEDDING_NAME = "d2v_nsf_100d_w5_HS" 
+EMBEDDING_NAME = "d2v_100d_w5_HS" 
 
 SIZE = 100
 WINDOW = 5
@@ -38,13 +28,11 @@ MIN_ALPHA = 0.025
 MIN_COUNT = 2
 WORKERS= 20
 ITER = 20
-HS = 0
+HS = 1
 
 class Doc2VecTrainer():
     
-    def __init__(self, embedding_name, data_which = "all"):
-        
-        self.path_persistent = os.path.join(
+    path_persistent = os.path.join(
             os.path.dirname(os.path.realpath(__file__)),
             "..",
             "..",
@@ -52,15 +40,13 @@ class Doc2VecTrainer():
             "processed",
             "doc_embeddings"
         )
-
-        self.paths = {
-            "model":os.path.join(self.path_persistent, embedding_name + ".model"),
-            "vectors":os.path.join(self.path_persistent, embedding_name + ".bin")
-            }
+    
+    def __init__(self, embedding_name, data_which = "all"):
+        
+        self.filepath = os.path.join(self.path_persistent, embedding_name)
         
         parser = Doc2VecData(data_which)
         self.docs = parser.getTrainingData()
-        self.timer = Timer()
             
     def train_model(self, size = 100, window = 5, alpha = 0.025, 
                     min_alpha = 0.025, min_count = 2, workers = 20, 
@@ -80,16 +66,15 @@ class Doc2VecTrainer():
                 If 0, and negative is non-zero, negative sampling will be used.
         """
         
-        if os.path.isfile(self.paths["model"]):
+        if os.path.isfile(self.filepath):
             print('Loading model.')
-            self.model = Doc2Vec.load(self.paths["model"])
+            self.model = Doc2Vec.load(self.filepath)
             
         else:
             print("Model not persistent yet.")            
             print("Starting training the model.")
-            self.timer.tic()
             
-            model = Doc2Vec(
+            self.model = Doc2Vec(
                     dm = 1,
                     size = size,
                     window = window,
@@ -100,43 +85,27 @@ class Doc2VecTrainer():
                     hs = hs                   
                     )  
             
-            model.build_vocab(self.docs)
-            
+            self.model.build_vocab(self.docs)
+
+#            self.model.train(
+#                        self.docs, 
+#                        total_examples = self.model.corpus_count,
+#                        epochs = iterations
+#                        )
             for epoch in range(iterations):
-                print('Iteration {}\n'.format(epoch))
-                #random.shuffle(self.docs)
-                model.train(self.docs)
-                model.alpha -= 0.002    #decrease the learning rate
-                model.min_alpha = model.alpha #fix the learning rate, no decay
+                print('Iteration {}\n'.format(epoch+1))
+                self.model.train(
+                        self.docs, 
+                        total_examples = self.model.corpus_count,
+                        epochs = self.model.iter
+                        )
+                self.model.alpha -= 0.002    #decrease the learning rate
+                self.model.min_alpha = self.model.alpha #fix the learning rate, no decay
 
-            print("... total training time:")
-            self.timer.toc()
-            
             print("Saving model to disk.")
-            self.model.save(self.paths["model"])           
+            self.model.save(self.filepath)           
             
-
-        if os.path.isfile(self.paths["vectors"]):
-            print('Loading trained word vectors.')
-            self.vectors = Doc2VecKeyedVectors.load_word2vec_format(
-                    self.paths["vectors"], 
-                    binary = True
-                    )
             
-        else:
-            print("Saving word vectors to disk.")
-            self.vectors = self.model.wv
-            
-            self.vectors.save_word2vec_format(
-                    self.paths["vectors"], 
-                    binary = True
-                    )
-            
-            self.model.delete_temporary_training_data(
-                    keep_doctags_vectors=True, 
-                    keep_inference=True
-                    )
-         
 # Example:
 trainer = Doc2VecTrainer(
         embedding_name = EMBEDDING_NAME,
