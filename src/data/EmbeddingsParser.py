@@ -90,6 +90,17 @@ class EmbeddingsParser:
             "ft_150d_w5_SG_NS-folder":os.path.join(path_embeddings, "ft_150d_w5_SG_NS-spacy","")            
     }
     
+    pretrained_models = [
+            "6d50",
+            "6d100",
+            "6d200",
+            "6d300",
+            "42d300",
+            "840d300",
+            "word2vec",
+            "fasttext"
+    ]
+    
     lengths = {
             "6d50":50,
             "6d100":100,
@@ -133,6 +144,8 @@ class EmbeddingsParser:
             
             pretrained(bool): Whether the used embeddings are pretrained or not.
         """
+        pretrained = model in self.pretrained_models
+        
         try:
             self.nlp = spacy.load(self.paths[model + "-folder"])
             self.length = self.lengths[model]
