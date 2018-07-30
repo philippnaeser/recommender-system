@@ -30,7 +30,7 @@ class BaselineModel(AbstractModel):
             raise TypeError("argument 'author' needs to be a string.")
 
         data = self.data[self.data["author_name"]==author].sort_values(by="count",ascending=False)
-        conference = list(data["conference_name"])
+        conference = list(data["conferenceseries"])
         confidence = list(data["count"])
 
         return [conference,confidence]
@@ -64,7 +64,7 @@ class BaselineModel(AbstractModel):
                 print("Batch querying: {}%".format(int(i/count*100)))
             
             author = row["author_name"]
-            conference = row["conference_name"]
+            conference = row["conferenceseries"]
             value = row["count"]
             
             try:
@@ -96,20 +96,20 @@ class BaselineModel(AbstractModel):
     def train(self,data):
         """
         Set the data to be searched for by author name.
-        Needs to contain 'author_name' and 'conference_name'.
+        Needs to contain 'author_name' and 'conferenceseries'.
         
         Args:
             data (pandas.DataFrame): the data used by the model.
         """
         AbstractModel.train(self,data)
         
-        #for check in ["author_name","conference","conference_name","count"]:
-        for check in ["author_name","conference_name"]:
+        #for check in ["author_name","conference","conferenceseries","count"]:
+        for check in ["author_name","conferenceseries"]:
             if not check in data.columns:
                 raise IndexError("Column '{}' not contained in given DataFrame.".format(check))
         
         data["count"] = pd.Series(np.ones(len(data)))
-        self.data = data[["author_name","conference_name","count"]].groupby(by=["author_name","conference_name"]).sum().reset_index()
+        self.data = data[["author_name","conferenceseries","count"]].groupby(by=["author_name","conferenceseries"]).sum().reset_index()
         #self.data.drop_duplicates(inplace=True)
       
     ##########################################

@@ -20,15 +20,17 @@ from DataLoader import DataLoader
 """
 
 d = DataLoader()
-d.papers(["2013","2014","2015"]).contributions().conferences()
-data_train = d.data
+d.training_data("small").contributions()
+data_train = d.data[["author_name","conferenceseries"]].copy()
+del d
 
 model = BaselineModel()
 model.train(data_train)
 
 d = DataLoader()
-d.papers(["2016"]).contributions().conferences()
-data_test = d.data
+d.test_data("small").contributions()
+data_test = d.data[["author_name","conferenceseries"]].copy()
+del d
 
 model_test = BaselineModel()
 model_test.train(data_test)
