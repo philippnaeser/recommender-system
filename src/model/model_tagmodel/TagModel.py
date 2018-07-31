@@ -25,7 +25,7 @@ class TagModel(AbstractModel):
             raise TypeError("argument 'tag' needs to be a string.")
 
         data = self.data[self.data["tag_name"]==tag].sort_values(by="count",ascending=False)
-        conference = list(data["conference_name"])
+        conference = list(data["conferenceseries"])
         confidence = list(data["count"])
 
         return [conference,confidence]
@@ -58,7 +58,7 @@ class TagModel(AbstractModel):
                 print("Batch querying: {}%".format(int(i/count*100)))
             
             tag = row["tag_name"]
-            conference = row["conference_name"]
+            conference = row["conferenceseries"]
             value = row["count"]
             
             try:
@@ -89,19 +89,19 @@ class TagModel(AbstractModel):
     def train(self,data):
         """
         Set the data to be searched for by tag name.
-        Needs to contain 'tag_name' and 'conference_name'.
+        Needs to contain 'tag_name' and 'conferenceseries'.
         
         Args:
             data (pandas.DataFrame): the data used by the model.
         """
         AbstractModel.train(self,data)
         
-        for check in ["tag_name","conference_name"]:
+        for check in ["tag_name","conferenceseries"]:
             if not check in data.columns:
                 raise IndexError("Column '{}' not contained in given DataFrame.".format(check))
         
         data["count"] = pd.Series(np.ones(len(data)))
-        self.data = data[["tag_name","conference_name","count"]].groupby(by=["tag_name","conference_name"]).sum().reset_index()
+        self.data = data[["tag_name","conferenceseries","count"]].groupby(by=["tag_name","conferenceseries"]).sum().reset_index()
         #self.data.drop_duplicates(inplace=True)
         ##########################################
     def get_tag_names(self,term="",count=10):

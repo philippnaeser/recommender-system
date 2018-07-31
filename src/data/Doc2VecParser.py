@@ -21,9 +21,14 @@ class Doc2VecParser():
         )
     
     filepaths = {
+            "d2v_50d_w5_NS":os.path.join(path_persistent,"d2v_50d_w5_NS"),
             "d2v_100d_w5_HS":os.path.join(path_persistent,"d2v_100d_w5_HS"),
-            "d2v_100d_w5_HS_2":os.path.join(path_persistent,"d2v_100d_w5_HS_2"),
-            "d2v_100d_w5_NS_2":os.path.join(path_persistent,"d2v_100d_w5_NS_2")
+            "d2v_100d_w5_NS":os.path.join(path_persistent,"d2v_100d_w5_NS"),
+            "d2v_100d_w8_NS":os.path.join(path_persistent,"d2v_100d_w8_NS"),
+            "d2v_100d_w10_NS":os.path.join(path_persistent,"d2v_100d_w10_NS"),
+            "d2v_100d_w12_NS":os.path.join(path_persistent,"d2v_100d_w12_NS"),
+            "d2v_300d_w5_NS":os.path.join(path_persistent,"d2v_300d_w5_NS"),
+            "d2v_400d_w5_NS":os.path.join(path_persistent,"d2v_400d_w5_NS")
             }
         
     #################################################    

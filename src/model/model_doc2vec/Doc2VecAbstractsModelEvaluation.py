@@ -74,7 +74,7 @@ if __name__ == '__main__':
         d_train.make_persistent(filename)
     
     model = Doc2VecAbstractsModel()
-    embedding_model = "d2v_100d_w5_HS_2"
+    embedding_model = "d2v_300d_w5_NS"
     model.train(d_train.data, embedding_model)
     
     ### load test data if it is already pickled, otherwise create it from scratch

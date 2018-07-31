@@ -19,16 +19,16 @@ DATA_TRAIN = "all"
                 
 # set a name which is used as directory for the saved models 
 # and word vectors in "data/processed/word_embeddings/<name>"
-EMBEDDING_NAME = "d2v_100d_w5_HS" 
+EMBEDDING_NAME = "d2v_300d_w5_NS" 
 
-SIZE = 100
+SIZE = 300
 WINDOW = 5
 ALPHA = 0.025
 MIN_ALPHA = 0.025
 MIN_COUNT = 2
 WORKERS= 20
 ITER = 20
-HS = 1
+HS = 0
 
 class Doc2VecTrainer():
     
@@ -48,7 +48,7 @@ class Doc2VecTrainer():
         parser = Doc2VecData(data_which)
         self.docs = parser.getTrainingData()
             
-    def train_model(self, size = 100, window = 5, alpha = 0.025, 
+    def train_model(self, size = 300, window = 5, alpha = 0.025, 
                     min_alpha = 0.025, min_count = 2, workers = 20, 
                     iterations = 20, hs = 0):
         """
@@ -87,20 +87,11 @@ class Doc2VecTrainer():
             
             self.model.build_vocab(self.docs)
 
-#            self.model.train(
-#                        self.docs, 
-#                        total_examples = self.model.corpus_count,
-#                        epochs = iterations
-#                        )
-            for epoch in range(iterations):
-                print('Iteration {}\n'.format(epoch+1))
-                self.model.train(
+            self.model.train(
                         self.docs, 
                         total_examples = self.model.corpus_count,
-                        epochs = self.model.iter
+                        epochs = iterations
                         )
-                self.model.alpha -= 0.002    #decrease the learning rate
-                self.model.min_alpha = self.model.alpha #fix the learning rate, no decay
 
             print("Saving model to disk.")
             self.model.save(self.filepath)           

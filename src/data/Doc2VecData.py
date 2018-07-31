@@ -11,7 +11,7 @@ import os
 sys.path.insert(0, os.path.join(os.getcwd()))
 sys.path.insert(0, os.path.join(os.getcwd(),".."))
 sys.path.insert(0, os.path.join(os.getcwd(),"..", "model"))
-sys.path.insert(0, os.path.join(os.getcwd(),"..", "..", "neuralnets"))
+sys.path.insert(0, os.path.join(os.getcwd(),"..", "model", "neuralnets"))
 
 from DataLoader import DataLoader as SciGraphLoader
 from TimerCounter import Timer
