@@ -30,9 +30,19 @@ class CNNAbstractsModel(AbstractModel):
             double[]: confidence scores
         """
         vector = self.embeddings_parser.transform_vector(abstract)
+        input = torch.FloatTensor(vector).unsqueeze(0).unsqueeze(0)
+        del vector
         
         with torch.no_grad():
-            scores = self.net.forward(vector)
+            scores = self.net.forward(input)
+            
+        del input
+        
+        order = np.argsort(-scores.numpy())[0]
+        conference = self.classes[order[0:self.recs]]
+        confidence = scores[0,order[0:self.recs]]
+            
+        return [conference,confidence.numpy()]
             
     ##########################################
     def query_batch(self,batch):
@@ -49,17 +59,31 @@ class CNNAbstractsModel(AbstractModel):
             str[]: name of the conference
             double[]: confidence scores
         """
+        print("transforming")
+        
         vectors = self.embeddings_parser.transform_vectors(batch)
+        del batch
+        
+        print("padding")
     
         # pad inputs to max length
         max_len = max(len(l) for l in vectors)
         for i, inp in enumerate(vectors):
             vectors[i] = np.concatenate((inp,np.zeros(max_len-inp.size)))
+        
+        print("inputs")
+        
+        inputs = torch.FloatTensor(vectors).unsqueeze(1)
+        del vectors
             
-        vectors = torch.FloatTensor(vectors).unsqueeze(1)
-            
+        print("forward")
+        
         with torch.no_grad():
-            scores = self.net.forward(vectors)
+            scores = self.net.forward(inputs)
+            
+        del inputs
+        
+        print("recs")
             
         o = np.argsort(-scores.numpy())
         conference = list()

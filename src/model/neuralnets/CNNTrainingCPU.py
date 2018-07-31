@@ -1,5 +1,6 @@
 import gc
 
+import torch
 import torch.optim as optim
 
 import math
@@ -9,24 +10,24 @@ from TimerCounter import Timer
 
 #### TRAINING PARAMETERS ####
 
-USE_CUDA = False
+USE_CUDA = True
 
 # set a name which is used as directory for the save states in "data/processed/nn/<name>"
-NET_NAME = "CNN-CPU-test"
+NET_NAME = "CNN-100d-w2v-100f"
 
-BATCH_SIZE = 500                    # 300d: 150
-CHUNKS_IN_MEMORY = 1                # 300d: 3
-CHUNK_SIZE = 60000                  # 300d: 5000
-EPOCHS = 2
+BATCH_SIZE = 250               #50d: 500              # 300d: 150
+CHUNKS_IN_MEMORY = 6           #50d: 1                # 300d: 3
+CHUNK_SIZE = 5000              #50d: 60000            # 300d: 5000
+EPOCHS = 50
 DATA_TRAIN = "small"
-SHUFFLE_TRAIN = False
+SHUFFLE_TRAIN = True
 DATA_TEST = "small"
-EMBEDDING_MODEL = "6d50"
-EMBEDDING_SIZE = 50
-NUM_FILTERS_CONV = 50
+EMBEDDING_MODEL = "w2v_100d_w10_SG_NS"
+EMBEDDING_SIZE = 100
+NUM_FILTERS_CONV = 100
 WEIGHT_DECAY = 0.0005
 
-VERBOSE_EPOCHS = True
+VERBOSE_EPOCHS = False
 VERBOSE_EPOCHS_STEPS = 10
 
 # keep states of each epoch of the net
@@ -153,8 +154,9 @@ for epoch in range(epoch,epoch+EPOCHS):
     while d_test.has_next_batch():
         inputs, labels = d_test.next_batch()
         
-        outputs = net(inputs)
-        loss = net.loss(outputs,labels)
+        with torch.no_grad():
+            outputs = net(inputs)
+            loss = net.loss(outputs,labels)
         
         running_loss += loss.item()
         if VERBOSE_EPOCHS:

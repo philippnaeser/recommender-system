@@ -5,6 +5,9 @@ Created on Wed Jul 25 14:34:53 2018
 @author: Steff
 """
 
+MODEL_NAME = "CNN-100d-w2v-100f"
+EMBEDDINGS_MODEL = "w2v_100d_w10_SG_NS"
+
 import sys
 import os
 import pickle
@@ -31,14 +34,16 @@ from DataLoader import DataLoader
 from CNNet import CNNet
 from CNNAbstractsModel import CNNAbstractsModel
 from EmbeddingsParser import EmbeddingsParser
+from TimerCounter import Timer
+
+timer = Timer()
 
 
-
-### load test data if it is already pickled, otherwise create it from scratch
+### load test data
 
 d_test = DataLoader()
-d_test.papers(["2016"]).abstracts().conferences().conferenceseries()
-#d_test.data = d_test.data[["chapter","chapter_abstract","conference","conference_name"]].copy()
+d_test.test_data("small").abstracts()
+d_test.data = d_test.data[["chapter_abstract","conferenceseries"]].copy()
 d_test.data.drop(
     list(d_test.data[pd.isnull(d_test.data.chapter_abstract)].index),
     inplace=True
@@ -55,7 +60,7 @@ classes_file = os.path.join(
         "data",
         "interim",
         "neuralnet_training",
-        "training-data-cnn-small6d50",
+        "test-data-cnn-smallw2v_100d_w10_SG_NS",
         "classes.pkl"
 )
 
@@ -63,16 +68,16 @@ with open(classes_file,"rb") as f:
     classes = pickle.load(f)
 
 net = CNNet(
-        "CNN-CPU-test",
-        embedding_size=50,
+        MODEL_NAME,
+        embedding_size=100,
         classes=len(classes),
-        filters=50
+        filters=100
 )
 net.load_state()
 net.cpu()
 
 parser = EmbeddingsParser()
-parser.load_model("6d50")
+parser.load_model(EMBEDDINGS_MODEL)
 
 model = CNNAbstractsModel()
 model.train(
@@ -81,7 +86,7 @@ model.train(
         classes
 )
 
-query_test = list(d_test.data.chapter_abstract)[0:1000]
+query_test = list(d_test.data.chapter_abstract)#[0:1000]
 
 conferences_truth = list()
 confidences_truth = list()
@@ -94,9 +99,43 @@ truth = [conferences_truth,confidences_truth]
     
 ### apply test query and retrieve results
 
-recommendation = model.query_batch(query_test)
+recommendations_file = os.path.join(
+        os.path.realpath(__file__),
+        "..",
+        "..",
+        "..",
+        "..",
+        "data",
+        "processed",
+        "nn",
+        MODEL_NAME,
+        "evaluation.pkl"
+        
+)
+
+try:
+    with open(recommendations_file,"rb") as f:
+        recommendations = pickle.load(f)
+    print("loaded recommendations from disk.")
+        
+except FileNotFoundError:
+    print("recommendations not found on disk, generating it.")
+    conferences_rec = list()
+    confidences_rec = list()
+    timer.set_counter(len(d_test.data.chapter_abstract))
+    for abstract in d_test.data.chapter_abstract:
+        confer, confid = model.query_single(abstract)
+        conferences_rec.append(confer)
+        confidences_rec.append(confid)
+        timer.count()
+        
+    recommendation = [conferences_rec,confidences_rec]
     
+    with open(recommendations_file,"wb") as f:
+        pickle.dump(recommendation,f)
+
 ### evaluate
+
 print("Computing MAP.")
 from MAPEvaluation import MAPEvaluation
 evaluation = MAPEvaluation()

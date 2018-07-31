@@ -32,10 +32,10 @@ class MeanFMeasureEvaluation(AbstractEvaluation):
         
         size = len(recommendation[0])
         for i in range(size):
-            if recommendation[0][i] == None:
+            if recommendation[0][i] is None:
                 precision += 1
                 recall += 0
-            elif truth[0][i] == None:
+            elif truth[0][i] is None:
                 precision += 0
                 recall += 1
             else:
