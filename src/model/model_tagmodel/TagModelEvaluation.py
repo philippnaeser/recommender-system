@@ -27,27 +27,34 @@ model = TagModel()
 model.train(data_train)
 
 #Test Part
+print("Preparing test data")
 d = DataLoader()
 d.papers(["2016"]).conferences().conferenceseries().keywords()
+temp = d.data.loc[:, ["chapter","conferenceseries", "keyword_label"]]
+temp.columns = ["chapter", "conferenceseries", "tag_name"]
+chapters = list(temp.chapter.unique())
+print(len(chapters))
+conferenceseries = list()
+tags = list()
+i = 0
+for chapter in chapters:
+    conferenceseries.append(temp[temp["chapter"]==chapter].conferenceseries.unique())
+    tags.append(list(temp[temp["chapter"]==chapter].tag_name.unique()))
+    i += 1
+    if i%1000 == 0:
+        print(i)
+    if i == 21399:
+        print(len(conferenceseries))
+        print(len(tags))
+print("done")
+print(len(conferenceseries))
+print(len(tags))
 
-data_test = d.data.loc[:, ["conferenceseries", "keyword_label"]]
-data_test.columns = ["conferenceseries", "tag_name"]
 
-model_test = TagModel()
-model_test.train(data_test)
-
-
-#tags = list(data_test.tag_name)
-tags = list(model_test.get_tag_names(count=0))
 print("Getting recommendations.")
 recommendation = model.query_batch(tags)
 print("Getting truth values.")
-truth = model_test.query_batch(tags)
-
-print("Computing FirstMatch.")
-from FirstMatchEvaluation import FirstMatchEvaluation
-evaluation = FirstMatchEvaluation()
-evaluation.evaluate(recommendation,truth)
+truth = conferenceseries
 
 print("Computing recall.")
 from RecallEvaluation import RecallEvaluation

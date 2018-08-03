@@ -10,7 +10,7 @@ import numpy as np
 class TagModel(AbstractModel):
     
     ##########################################
-    def query_single(self,tag):
+    def query_single(self,tag, recs=10):
         """
         Queries the model and returns a list of recommendations.
         
@@ -21,16 +21,36 @@ class TagModel(AbstractModel):
             str[]: name of the conference
             double[]: confidence scores
         """
-        if not isinstance(tag,str):
-            raise TypeError("argument 'tag' needs to be a string.")
+        if not isinstance(tag,str) and not isinstance(tag, list):
+            raise TypeError("argument 'tag' needs to be a string or a list of strings.")
+        data = []
+        conference = list()
+        confidence = list()
+        if isinstance(tag, str):
+            data = self.data[self.data["tag_name"]==tag].sort_values(by="count",ascending=False)
+            conference = list(data["conferenceseries"])
+            confidence = list(data["count"])
+        else:
+            for t in tag:
+                data = self.data[self.data["tag_name"]==t].sort_values(by="count",ascending=False)
+                for conf in list(data["conferenceseries"]):
+                    if not conf in conference:
+                        conference.append(conference)
+                        confidence.append(1)
+                    else:
+                        # increase the count
+                        index = conference.index(conf)
+                        confidence[index] = confidence[index]+1
+                temp = pd.DataFrame()
+                temp["conferenceseries"] = conference
+                temp["count"] = confidence
+                temp.sort_values(by="count", ascending=False)
+                conference = list(temp["conferenceseries"])
+                confidence = list(temp["count"])
 
-        data = self.data[self.data["tag_name"]==tag].sort_values(by="count",ascending=False)
-        conference = list(data["conferenceseries"])
-        confidence = list(data["count"])
-
-        return [conference,confidence]
+        return [conference[0:recs],confidence[0:recs]]
     ##########################################
-    def query_batch(self,batch):
+    def query_batch(self,batch, recs=10):
         """
         Queries the model and returns a list of recommendations for each request.
         
@@ -46,42 +66,19 @@ class TagModel(AbstractModel):
         """
         if not isinstance(batch,list):
             raise TypeError("argument 'batch' needs to be a list of tag names.")
-        
-        data = self.data[self.data["tag_name"].isin(batch)]
-        
-        count = len(data)
+                
+        count = len(batch)
         checkpoint = max(int(count/20),1)
         i = 0
-        recommendations = {}
-        for index, row in data.iterrows():
-            if (i%checkpoint)==0:
-                print("Batch querying: {}%".format(int(i/count*100)))
-            
-            tag = row["tag_name"]
-            conference = row["conferenceseries"]
-            value = row["count"]
-            
-            try:
-                recommendations[tag][conference] = value
-            except KeyError:
-                recommendations[tag] = {conference:value}
-                
-            i += 1
-        
-        
         conference = list()
         confidence = list()
         for q in batch:
-            try:
-                conference.append(
-                        sorted(recommendations[q], key=recommendations[q].__getitem__, reverse=True)
-                )
-                confidence.append(
-                        sorted(recommendations[q].values(),reverse=True)
-                )
-            except KeyError:
-                conference.append(None)
-                confidence.append(None)
+            if (i%checkpoint)==0:
+                print("Batch querying: {}%".format(int(i/count*100)))   
+            i += 1
+            query = self.query_single(q, recs)
+            conference.append(query[0])
+            confidence.append(query[1])
         
             
         return [conference,confidence]
@@ -104,23 +101,3 @@ class TagModel(AbstractModel):
         self.data = data[["tag_name","conferenceseries","count"]].groupby(by=["tag_name","conferenceseries"]).sum().reset_index()
         #self.data.drop_duplicates(inplace=True)
         ##########################################
-    def get_tag_names(self,term="",count=10):
-        """
-        Returns the first 'count' number of tag names starting with the string 'term'.
-        If count=0, then all tag names starting with 'term' will be returned.
-        
-        Args:
-            term (str): String the tag name starts with.
-            count (int): The number of tag to return.
-            
-        Returns:
-            A list of tag names (strings).
-        """
-        tags = pd.Series(self.data["tag_name"].unique())
-        
-        if count>0:
-            tags = tags[tags.str.lower().str.startswith(term.lower())][:count]
-        else:
-            tags = tags[tags.str.lower().str.startswith(term.lower())]
-        
-        return tags
