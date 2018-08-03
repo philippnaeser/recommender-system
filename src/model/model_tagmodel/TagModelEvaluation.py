@@ -6,6 +6,7 @@
 import pandas as pd
 import sys
 import os
+import pickle
 print(os.path.join(os.getcwd(),".."))
 sys.path.insert(0, os.path.join(".","..","..","data"))
 sys.path.insert(0, os.path.join(os.getcwd(),".."))
@@ -28,27 +29,35 @@ model.train(data_train)
 
 #Test Part
 print("Preparing test data")
-d = DataLoader()
-d.papers(["2016"]).conferences().conferenceseries().keywords()
-temp = d.data.loc[:, ["chapter","conferenceseries", "keyword_label"]]
-temp.columns = ["chapter", "conferenceseries", "tag_name"]
-chapters = list(temp.chapter.unique())
-print(len(chapters))
-conferenceseries = list()
-tags = list()
-i = 0
-for chapter in chapters:
-    conferenceseries.append(temp[temp["chapter"]==chapter].conferenceseries.unique())
-    tags.append(list(temp[temp["chapter"]==chapter].tag_name.unique()))
-    i += 1
-    if i%1000 == 0:
-        print(i)
-    if i == 21399:
-        print(len(conferenceseries))
-        print(len(tags))
-print("done")
-print(len(conferenceseries))
-print(len(tags))
+try:
+    conferenceseries = pickle.load(open("conferenceseries.pkl", "rb"))
+    tags = pickle.load(open("tags.pkl", "rb"))
+except Exception as e:
+    print("No saved testdata found, generating it will take a moment")
+    d = DataLoader()
+    d.papers(["2016"]).conferences().conferenceseries().keywords()
+    temp = d.data.loc[:, ["chapter","conferenceseries", "keyword_label"]]
+    temp.columns = ["chapter", "conferenceseries", "tag_name"]
+    chapters = list(temp.chapter.unique())
+    print(len(chapters))
+    conferenceseries = list()
+    tags = list()
+    i = 0
+    for chapter in chapters:
+        conferenceseries.append(temp[temp["chapter"]==chapter].iloc[0].conferenceseries)
+        tags.append(list(temp[temp["chapter"]==chapter].tag_name.unique()))
+        i += 1
+        if i%1000 == 0:
+            print(i)
+        if i == 21399:
+            print(len(conferenceseries))
+            print(len(tags))
+    print("done")
+    print(len(conferenceseries))
+    print(len(tags))
+    print("Saving data to pickle files")
+    pickle.dump(conferenceseries, open("conferenceseries.pkl", "wb"))
+    pickle.dump(tags, open("tags.pkl", "wb"))
 
 
 print("Getting recommendations.")
