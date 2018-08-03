@@ -63,7 +63,13 @@ except Exception as e:
 print("Getting recommendations.")
 recommendation = model.query_batch(tags)
 print("Getting truth values.")
-truth = conferenceseries
+conferences_truth = list()
+confidences_truth = list()
+for conference in conferenceseries:
+    conferences_truth.append([conference])
+    confidences_truth.append([1])
+truth = [conferences_truth,confidences_truth]
+    
 
 print("Computing recall.")
 from RecallEvaluation import RecallEvaluation
