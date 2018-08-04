@@ -16,21 +16,25 @@ import pickle
 
 class TfIdfAbstractsModel(AbstractModel):
     
-    persistent_file = os.path.join("..","..","..","data","processed","abstracts.tfidf.model.pkl")
-    
     ##########################################
-    def __init__(self,recs=10):
+    def __init__(self,recs=10,min_df=0,max_df=1.0):
         self.stemmer = PorterStemmer()
         self.token_pattern = re.compile(r"(?u)\b\w\w+\b")
         self.stem_vectorizer = TfidfVectorizer(
                 tokenizer=self
                 ,stop_words="english"
                 #,strip_accents = "unicode"
-                ,min_df=3
-                #,max_df=0.7
+                ,min_df=min_df
+                ,max_df=max_df
         )
         # number of recommendations to return
         self.recs = recs
+        
+        self.persistent_file = os.path.join(
+                "..","..","..","data","processed",
+                "model_tfidf_max",
+                "abstracts.tfidf_max.model-"+str(min_df)+"-"+str(max_df)+".pkl"
+        )
     
     ##########################################
     def query_single(self,abstract):
@@ -44,16 +48,7 @@ class TfIdfAbstractsModel(AbstractModel):
                 str[]: name of the conference
                 double[]: confidence scores
         """
-        q_v = (self.stem_vectorizer.transform([abstract]))
-        #print(q_v)
-        sim = cosine_similarity(q_v,self.stem_matrix)[0]
-        o = np.argsort(-sim)
-        #print(self.data.chapter_abstract[o][0:10])
-        print(self.data.iloc[o[0]].chapter_abstract)
-        return [
-                list(self.data.iloc[o][0:self.recs].conferenceseries),
-                sim[o][0:self.recs]
-                ]
+        return self.query_batch([abstract])
     
     ##########################################
     def query_batch(self,batch):
@@ -79,18 +74,18 @@ class TfIdfAbstractsModel(AbstractModel):
         print("Dimensionality of batch: {}".format(q_v.shape))
         sim = cosine_similarity(q_v,self.stem_matrix)
         print("Cosine similarity computed.")
-        o = np.argsort(-np.array(sim))
-        index = 0
-        
-        for order in o:
+        #o = np.argsort(-np.array(sim))
+
+        for s in sim:
+            self.data["sim"] = s
+            data = self.data.groupby("conferenceseries").max().sort_values(by="sim",ascending=False)
+            
             conferences.append(
-                    list(self.data.iloc[order][0:self.recs].conferenceseries)
+                    list(data[0:self.recs].index)
             )
             confidences.append(
-                    
-                    sim[index][order][0:self.recs]
+                    list(data[0:self.recs].sim)
             )
-            index += 1
             self.count()
             
         return [conferences,confidences]
@@ -121,13 +116,13 @@ class TfIdfAbstractsModel(AbstractModel):
     
     ##########################################
     def _save_model(self):
-        with open(TfIdfAbstractsModel.persistent_file,"wb") as f:
+        with open(self.persistent_file,"wb") as f:
             pickle.dump([self.stem_matrix, self.stem_vectorizer, self.data], f)
     
     ##########################################
     def _load_model(self):
-        if os.path.isfile(TfIdfAbstractsModel.persistent_file):
-            with open(TfIdfAbstractsModel.persistent_file,"rb") as f:
+        if os.path.isfile(self.persistent_file):
+            with open(self.persistent_file,"rb") as f:
                 print("... loading ...")
                 self.stem_matrix, self.stem_vectorizer, self.data = pickle.load(f)
                 print("... loaded.")
