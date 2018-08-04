@@ -67,26 +67,36 @@ class TfIdfAbstractsModel(AbstractModel):
         """
         conferences = list()
         confidences = list()
-        self.count_init(len(batch))
+        #self.count_init(len(batch))
         
         q_v = (self.stem_vectorizer.transform(batch))
-        print("Abstracts transformed.")
-        print("Dimensionality of batch: {}".format(q_v.shape))
+        #print("Abstracts transformed.")
+        #print("Dimensionality of batch: {}".format(q_v.shape))
         sim = cosine_similarity(q_v,self.stem_matrix)
-        print("Cosine similarity computed.")
-        #o = np.argsort(-np.array(sim))
+        #print("Cosine similarity computed.")
+        o = np.argsort(-np.array(sim))
 
-        for s in sim:
-            self.data["sim"] = s
-            data = self.data.groupby("conferenceseries").max().sort_values(by="sim",ascending=False)
+        for index, order in enumerate(o):
+            data_conf = np.array(self.data["conferenceseries"])[order]
+            data_sim = np.array(sim[index])[order]
             
+            conference = list()
+            confidence = list()
+            i = 0
+            while len(conference) < self.recs:
+                c = data_conf[i]
+                if c not in conference:
+                    conference.append(c)
+                    confidence.append(data_sim[i])   
+                i += 1
+                
             conferences.append(
-                    list(data[0:self.recs].index)
+                    conference
             )
             confidences.append(
-                    list(data[0:self.recs].sim)
+                    confidence
             )
-            self.count()
+            #self.count()
             
         return [conferences,confidences]
     
