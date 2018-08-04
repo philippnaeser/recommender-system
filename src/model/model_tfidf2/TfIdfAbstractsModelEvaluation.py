@@ -23,7 +23,7 @@ import numpy as np
 
 model = TfIdfAbstractsModel(
         min_df=0,
-        max_df=0.6
+        max_df=1.0
 )
 
 ### Create the training data and train the model.
@@ -37,6 +37,7 @@ if not model._has_persistent_model():
         list(data_train[pd.isnull(data_train.chapter_abstract)].index),
         inplace=True
     )
+    data_train.chapter_abstract = data_train.chapter_abstract + " "
     data_train.chapter_abstract = data_train.chapter_abstract.str.decode("unicode_escape")
     data_train = data_train.groupby("conferenceseries").sum().reset_index()
     model.train(data_train)
