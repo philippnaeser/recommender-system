@@ -1,134 +1,167 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue May  1 14:39:50 2018
+Created on Sun Aug  5 21:26:40 2018
 
 @author: Steff
-@author: Andreea
 """
+
+###### Script parameters #######
+
+NMF_TOPICS = 10
+NMF_BETA_LOSS = "kullback-leibler" # "frobenius"
+NMF_SOLVER = "mu" # "cd"
+NMF_ALPHA = 0
+NMF_RANDOM_STATE = 0
+NMF_VERBOSE = True
+NMF_INIT = "random"
+NMF_MAX_ITER = 10
+
+TFIDF_MIN_DF = 10
+TFIDF_MAX_DF = 1.0
+
+MAX_RECS = 10
+
+TRAINING_DATA = "small"
+TEST_DATA = "small"
+
+BATCHSIZE_EVALUATION = 200
+PROCESSES_EVALUATION = 8
+
+#################################
 
 import sys
 import os
+import multiprocessing as mp
 
-# query batchifier to avoid OutOfMemory exceptions
-class Batchifier():
-    def __init__(self):
-        self.recv, self.send_c = Pipe()
-        self.recv_c, self.send = Pipe()
+sys.path.insert(0, os.path.join(os.getcwd(),".."))
+sys.path.insert(0, os.path.join(os.getcwd(),"..","..","data"))
+sys.path.insert(0, os.path.join(os.getcwd(),"..","evaluations"))
+from NMFAbstractsModel import NMFAbstractsModel
 
-    def run(self,batch):
-        #model = NMFAbstractsModel()
-        #model._load_model_x()
-        #model._load_model_lr()
-        #return model.query_batch(batch)
-        
-        p = Process(target=self.f, args=(self.recv_c, self.send_c))
-        p.start()
-        
-        self.send.send(batch)
-        self.send.close()
-        
-        results = self.recv.recv()
-        
-        p.join()
-        
-        return results
-        
+# Method to run in a multiprocessing process.
 
-    def f(self, recv, send):
-        sys.stderr = open("debug-multiprocessing.err.txt", "w")
-        sys.stdout = open("debug-multiprocessing.out.txt", "w")
-        sys.path.insert(0, os.path.join(os.getcwd(),".."))
-        sys.path.insert(0, os.path.join(os.getcwd(),"..","..","data"))
-        sys.path.insert(0, os.path.join(os.getcwd(),"..","evaluations"))
-        
-        from NMFAbstractsModel import NMFAbstractsModel
-        model = NMFAbstractsModel()
-        model._load_model_x()
-        model._load_model_lr()
-        
-        batch = recv.recv()
-        results = model.query_batch(batch)
-        
-        send.send(results)
-        send.close()
+def evaluate_model(batch):
+    result = model.query_batch(batch)
+    return result
+
+# Create model in child process.
+
+if __name__ != '__main__':
+    
+    sys.stderr = open("debug-multiprocessing.err."+str(os.getppid())+".txt", "w")
+    #sys.stdout = open("debug-multiprocessing.out."+str(os.getppid())+".txt", "w")
+    
+    model = NMFAbstractsModel(
+            topics=NMF_TOPICS,
+            beta_loss=NMF_BETA_LOSS,
+            solver=NMF_SOLVER,
+            alpha=NMF_ALPHA,
+            random_state=NMF_RANDOM_STATE,
+            verbose=NMF_VERBOSE,
+            init=NMF_INIT,
+            max_iter=NMF_MAX_ITER,
+            min_df=TFIDF_MIN_DF,
+            max_df=TFIDF_MAX_DF,
+            recs=MAX_RECS
+    )
+    model._load_model(TRAINING_DATA)
+
+# Main script.
 
 if __name__ == '__main__':
-    sys.path.insert(0, os.path.join(os.getcwd()))
-    sys.path.insert(0, os.path.join(os.getcwd(),".."))
-    sys.path.insert(0, os.path.join(os.getcwd(),"..","..","data"))
-    sys.path.insert(0, os.path.join(os.getcwd(),"..","evaluations"))
-    
-    from NMFAbstractsModel import NMFAbstractsModel
     from DataLoader import DataLoader
     import pandas as pd
     import numpy as np
-    from multiprocessing import Process, Pipe
+    import time
     
-    ### load training data if it is already pickled, otherwise create it from scratch
+    # Generate model and train it if needed.
     
-    filename = "abstracts.nmf.train.pkl"
+    model = NMFAbstractsModel(
+            topics=NMF_TOPICS,
+            beta_loss=NMF_BETA_LOSS,
+            solver=NMF_SOLVER,
+            alpha=NMF_ALPHA,
+            random_state=NMF_RANDOM_STATE,
+            verbose=NMF_VERBOSE,
+            init=NMF_INIT,
+            max_iter=NMF_MAX_ITER,
+            min_df=TFIDF_MIN_DF,
+            max_df=TFIDF_MAX_DF,
+            recs=MAX_RECS
+    )
     
-    d_train = DataLoader()
-    if not d_train.get_persistent(filename):
-        d_train.papers(["2013","2014","2015"]).abstracts().conferences()
-        d_train.data = d_train.data[["chapter","chapter_abstract","conference","conference_name"]].copy()
+    if not model._has_persistent_model(TRAINING_DATA):
+        d_train = DataLoader()
+        d_train.training_data(TRAINING_DATA).abstracts()
+        d_train.data = d_train.data[["chapter_abstract","conferenceseries"]].copy()
         d_train.data.drop(
             list(d_train.data[pd.isnull(d_train.data.chapter_abstract)].index),
             inplace=True
         )
-        d_train.make_persistent(filename)
-    
-    model = NMFAbstractsModel()
-    model.train(d_train.data,500,2)
-    
-    ### load test data if it is already pickled, otherwise create it from scratch
-    
-    filename = "abstracts.nmf.test.pkl"
+        d_train.data.chapter_abstract = d_train.data.chapter_abstract.str.decode("unicode_escape")
+        
+        model.train(d_train.data,TRAINING_DATA)
+   
+    # Generate test data.
     
     d_test = DataLoader()
-    if not d_test.get_persistent(filename):
-        d_test.papers(["2016"]).abstracts().conferences()
-        d_test.data = d_test.data[["chapter","chapter_abstract","conference","conference_name"]].copy()
-        d_test.data.drop(
-            list(d_test.data[pd.isnull(d_test.data.chapter_abstract)].index),
-            inplace=True
-        )
-        d_test.make_persistent(filename)
+    d_test.test_data(TEST_DATA).abstracts()
+    d_test.data = d_test.data[["chapter_abstract","conferenceseries"]].copy()
+    d_test.data.drop(
+        list(d_test.data[pd.isnull(d_test.data.chapter_abstract)].index),
+        inplace=True
+    )
+    d_test.data.chapter_abstract = d_test.data.chapter_abstract.str.decode("unicode_escape")
 
-    ### create test query and truth values
+    # Generate test query and truth values.
 
     query_test = list(d_test.data.chapter_abstract)#[0:1000]
     
     conferences_truth = list()
     confidences_truth = list()
     
-    for conference in list(d_test.data.conference_name):
+    for conference in list(d_test.data.conferenceseries):
         conferences_truth.append([conference])
         confidences_truth.append([1])
         
     truth = [conferences_truth,confidences_truth]
         
-    ### apply test query and retrieve results
+    # Apply test query and retrieve results.
     
-    batchsize = 200
-    minibatches = np.arange(0,len(query_test),batchsize)
+    minibatches = np.array_split(query_test,int(len(query_test)/BATCHSIZE_EVALUATION))
     
     conferences = list()
     confidences = list()
     
-    # batchify the query to avoid OutOfMemory exceptions
-    for i in minibatches:
-        minibatch = query_test[i:(i+batchsize)]
-        batchifier = Batchifier()
-        print("Running minibatch [{}/{}]".format(int((i/batchsize)+1),len(minibatches)))
-        results = batchifier.run(minibatch)
-        conferences.extend(results[0])
-        confidences.extend(results[1])
-        #break
+    # Batchify the query to avoid OutOfMemory exceptions.
+
+    results = None
+    
+    def process_ready(r):
+        global results
+        results = r
+    
+    pool = mp.Pool(processes=PROCESSES_EVALUATION)
+    job = pool.map_async(evaluate_model,minibatches,callback=process_ready)    
+    pool.close()
+    
+    while (True):
+        if (job.ready()): break
+        print("Tasks remaining: {}".format(job._number_left*job._chunksize))
+        time.sleep(5)
+        
+    print("Tasks completed.")
+            
+    for result in results:
+        conferences.extend(result[0])
+        confidences.extend(result[1])
+        
+    model._load_model(TRAINING_DATA)
         
     recommendation = [conferences,confidences]
         
-    ### evaluate
+    # Evaluate.
+    
     print("Computing MAP.")
     from MAPEvaluation import MAPEvaluation
     evaluation = MAPEvaluation()
