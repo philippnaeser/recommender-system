@@ -131,7 +131,7 @@ class TfIdfAbstractsModel(AbstractModel):
     
     ##########################################
     def _load_model(self):
-        if os.path.isfile(self.persistent_file):
+        if self._has_persistent_model():
             with open(self.persistent_file,"rb") as f:
                 print("... loading ...")
                 self.stem_matrix, self.stem_vectorizer, self.data = pickle.load(f)
@@ -139,6 +139,10 @@ class TfIdfAbstractsModel(AbstractModel):
                 return True
         
         return False
+    
+    ##########################################
+    def _has_persistent_model(self):
+        return os.path.isfile(self.persistent_file)
     
     ##########################################
     def print_top_k(self, k):
