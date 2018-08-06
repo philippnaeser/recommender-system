@@ -4,6 +4,9 @@ Created on Thu Jun 21 13:12:33 2018
 
 @author: Steff
 """
+import sys
+import os
+sys.path.insert(0, os.path.join(os.getcwd(),".."))
 
 query = [[
      ["A","B","C"]
@@ -12,7 +15,9 @@ query = [[
      ,["A","B"]
      ,["A","B"]
      ,["C","D"]
-     ,["A", "A"]
+     ,["A","A","B","A"]
+     ,["A","B","A","C"]
+     ,None
 ]]
 
 truth = [[
@@ -22,6 +27,8 @@ truth = [[
     ,["A","C"]
     ,["A","B","C","D"]
     ,["A","B","C","D"]
+    ,["A"]
+    ,["A","C"]
     ,["A"]
 ]]
 
@@ -34,9 +41,11 @@ truth = [[
 # 0.5
 # 0.5
 # 1.0
-# = 4.5/6 = 0.643
+# 1.0
+# 0.0
+# = 5.5/9 = 0.6111
 
-# MeanPrecision:
+# MeanPrecision(0):
 # ---------
 # 0.33
 # 0.0
@@ -44,49 +53,62 @@ truth = [[
 # 0.5
 # 1.0
 # 1.0
+# 0.5
+# 0.66
+# 0.0 (!)
+# = 4.5/9 = 0.5
+
+# MeanPrecision(1):
+# ---------
+# 0.33
+# 0.0
+# 0.5
+# 0.5
 # 1.0
-# = 4.33/7 = 0.619
+# 1.0
+# 0.5
+# 0.66
+# 1.0 (!)
+# = 5.5/9 = 0.611
 
 # MeanF1Measure:
 # ---------
 # 0.5
 # 0.0
-# 0.66
+# 0.667
 # 0.5
-# 0.66
-# 0.66
-# 1.0
-# = 4/7 = 0.571
+# 0.667
+# 0.667
+# 0.667
+# 0.795
+# 0.0
+# = 4.463/9 = 0.496
 
 # MAP:
 # ---------
-# 0.5
-# 0.0
-# 1.0
-# (1)/2 = 0.5
-# (1+1)/4 = 0.5
-# (1+1)/4 = 0.5
-# 1.0
-# = 4/7 = 0.571
+# (0+1/2+0)/1 = 0.5
+#               0.0
+#               1.0
+# (1+0)/2 =     0.5
+# (1+1)/4 =     0.5
+# (1+1)/4 =     0.5
+#               1.0
+# (1+3/4)/2 =   0.875
+#               0.0
+#----------------------
+# = 4.875/9 = 0.542
 
-print("Computing Recall.")
 from MeanRecallEvaluation import MeanRecallEvaluation
-evaluation = MeanRecallEvaluation()
-ev_recall = round(evaluation.evaluate(query, truth),3)
-
-print("Computing Precision.")
 from MeanPrecisionEvaluation import MeanPrecisionEvaluation
-evaluation = MeanPrecisionEvaluation()
-ev_precision = round(evaluation.evaluate(query, truth),3)
-
-print("Computing F1Measure.")
 from MeanFMeasureEvaluation import MeanFMeasureEvaluation
-evaluation = MeanFMeasureEvaluation()
-ev_fmeasure = round(evaluation.evaluate(query, truth, 1),3)
-
-print("Computing MAP.")
 from MAPEvaluation import MAPEvaluation
-evaluation = MAPEvaluation()
-ev_map = evaluation.evaluate(query, truth)
 
-print("Recall: {}, Precision: {}, F1Measure: {}, MAP: {}".format(ev_recall,ev_precision, ev_fmeasure, ev_map))
+from EvaluationContainer import EvaluationContainer
+evaluation = EvaluationContainer({
+        "Recall":MeanRecallEvaluation(),
+        "Precision0":MeanPrecisionEvaluation(0),
+        "Precision1":MeanPrecisionEvaluation(1),
+        "F1":MeanFMeasureEvaluation(),
+        "MAP":MAPEvaluation()
+})
+evaluation.evaluate(query, truth)

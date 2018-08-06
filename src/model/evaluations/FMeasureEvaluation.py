@@ -12,7 +12,10 @@ from PrecisionEvaluation import PrecisionEvaluation
 
 class FMeasureEvaluation(AbstractEvaluation):
     
-    def evaluate(self, recommendation, truth, beta):
+    def __init__(self,beta=1):
+        self.beta = beta
+    
+    def evaluate(self, recommendation, truth):
         """
         Computes the F-beta measure of the model.
         
@@ -25,15 +28,14 @@ class FMeasureEvaluation(AbstractEvaluation):
         
         Returns:
             int: F-beta score 
-            
         """
         recall = RecallEvaluation().evaluate(recommendation, truth) 
         precision = PrecisionEvaluation().evaluate(recommendation, truth)
         
         if ((precision!=0) or (recall!=0)):
-            measure = (1 + beta)*(precision*recall)/(np.square(beta)*precision + recall)
+            measure = (1 + self.beta)*(precision*recall)/(np.square(self.beta)*precision + recall)
         else:
             measure = 0
         
-        print("F{} score = {}".format(beta, measure))
+        #print("F{} score = {}".format(beta, measure))
         return measure

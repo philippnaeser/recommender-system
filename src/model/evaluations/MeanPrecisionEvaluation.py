@@ -9,6 +9,9 @@ from AbstractClasses import AbstractEvaluation
 
 class MeanPrecisionEvaluation(AbstractEvaluation):
     
+    def __init__(self,none_value=1):
+        self.none_value = none_value
+    
     def evaluate(self,recommendation,truth):
         """
         Calculates the fraction of attended conferences that were recommended.
@@ -26,7 +29,7 @@ class MeanPrecisionEvaluation(AbstractEvaluation):
         size = len(recommendation[0])
         for i in range(size):
             if recommendation[0][i] is None:
-                precision += 1
+                precision += self.none_value
             elif truth[0][i] is None:
                 precision += 0
             else:

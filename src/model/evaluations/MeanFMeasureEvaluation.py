@@ -10,7 +10,10 @@ import numpy as np
 
 class MeanFMeasureEvaluation(AbstractEvaluation):
     
-    def evaluate(self, recommendation, truth, beta):
+    def __init__(self,beta=1):
+        self.beta = beta
+    
+    def evaluate(self, recommendation, truth):
         """
         Computes the F-beta measure of the model.
         
@@ -45,7 +48,7 @@ class MeanFMeasureEvaluation(AbstractEvaluation):
                 recall = len(q_s.intersection(t_s)) / len(t_s)
                 
                 if (precision != 0) & (recall != 0):
-                    fmeasure += (1 + beta)*(precision*recall)/(np.square(beta)*precision + recall)
+                    fmeasure += (1 + self.beta)*(precision*recall)/(np.square(self.beta)*precision + recall)
                 else:
                     fmeasure += 0
                 
