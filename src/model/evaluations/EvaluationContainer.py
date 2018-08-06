@@ -14,11 +14,16 @@ class EvaluationContainer():
             from MeanRecallEvaluation import MeanRecallEvaluation
             from MeanPrecisionEvaluation import MeanPrecisionEvaluation
             from MAPEvaluation import MAPEvaluation
+            from MAPkEvaluation import MAPkEvaluation
             self.evaluations = {
                 "Recall":MeanRecallEvaluation(),
-                "Precision1":MeanPrecisionEvaluation(1),
-                "Precision0":MeanPrecisionEvaluation(0),
-                "MAP":MAPEvaluation()
+                "Precision(1)":MeanPrecisionEvaluation(1),
+                "Precision(0)":MeanPrecisionEvaluation(0),
+                "MAP":MAPEvaluation(),
+                "MAP@10":MAPkEvaluation(10),
+                "MAP@5":MAPkEvaluation(5),
+                "MAP@3":MAPkEvaluation(3),
+                "MAP@1":MAPkEvaluation(1)
             }
         
         self.max_len = str(len(max(self.evaluations, key=len))+1)

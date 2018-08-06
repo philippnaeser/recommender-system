@@ -84,7 +84,7 @@ truth = [[
 # 0.0
 # = 4.463/9 = 0.496
 
-# MAP:
+# MAP@10:
 # ---------
 # (0+1/2+0)/1 = 0.5
 #               0.0
@@ -98,10 +98,39 @@ truth = [[
 #----------------------
 # = 4.875/9 = 0.542
 
+# MAP@3:
+# ---------
+# (0+1/2+0)/1 = 0.5
+#               0.0
+#               1.0
+# (1+0)/2 =     0.5
+# (1+1)/4 =     0.5
+# (1+1)/4 =     0.5
+#               1.0
+# (1)/2 =       0.5
+#               0.0
+#----------------------
+# = 4.5/9 = 0.5
+
+# MAP@1:
+# ---------
+#               0.0
+#               0.0
+#               1.0
+#               0.5
+#               0.5
+#               0.5
+#               0.25
+# (1)/2 =       0.5
+#               0.0
+#----------------------
+# = 3.25/9 = 0.361
+
 from MeanRecallEvaluation import MeanRecallEvaluation
 from MeanPrecisionEvaluation import MeanPrecisionEvaluation
 from MeanFMeasureEvaluation import MeanFMeasureEvaluation
 from MAPEvaluation import MAPEvaluation
+from MAPkEvaluation import MAPkEvaluation
 
 from EvaluationContainer import EvaluationContainer
 evaluation = EvaluationContainer({
@@ -109,6 +138,9 @@ evaluation = EvaluationContainer({
         "Precision0":MeanPrecisionEvaluation(0),
         "Precision1":MeanPrecisionEvaluation(1),
         "F1":MeanFMeasureEvaluation(),
-        "MAP":MAPEvaluation()
+        "MAP":MAPEvaluation(),
+        "MAP@10":MAPkEvaluation(10),
+        "MAP@3":MAPkEvaluation(3),
+        "MAP@1":MAPkEvaluation(1)
 })
 evaluation.evaluate(query, truth)
