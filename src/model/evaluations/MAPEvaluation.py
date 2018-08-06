@@ -6,6 +6,7 @@ Created on Thu May 10 23:14:36 2018
 """
 
 from AbstractClasses import AbstractEvaluation
+import numpy as np
 
 class MAPEvaluation(AbstractEvaluation):
     
@@ -38,12 +39,16 @@ class MAPEvaluation(AbstractEvaluation):
             averagePrecision = 0
               
             if truth[0][i] is not None:
-                if recommendation[0][i] is not None:  
-                    for j in range(len(recommendation[0][i])):
-                        if (recommendation[0][i][j] is not None) and (recommendation[0][i][j] in truth[0][i]):
+                if recommendation[0][i] is not None: 
+                    #Drop duplicates from the recommendation list
+                    unique_recommendation, indices = np.unique(recommendation[0][i], return_index = True)
+                    unique_recommendation = unique_recommendation[np.argsort(indices)]
+                    
+                    for j in range(len(unique_recommendation)):
+                        if (unique_recommendation[j] is not None) and (unique_recommendation[j] in truth[0][i]):
                            rank = j+1
-                           sumPrecisions = sumPrecisions + self._precisionAtK(recommendation[0][i], truth[0][i], rank)
-                        
+                           sumPrecisions = sumPrecisions + self._precisionAtK(unique_recommendation, truth[0][i], rank)
+                    
                     averagePrecision = sumPrecisions/len(truth[0][i])
             sumAveragePrecisions += averagePrecision
 
