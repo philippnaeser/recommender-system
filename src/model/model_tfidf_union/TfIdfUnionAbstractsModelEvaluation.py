@@ -27,7 +27,7 @@ import multiprocessing as mp
 sys.path.insert(0, os.path.join(os.getcwd(),".."))
 sys.path.insert(0, os.path.join(os.getcwd(),"..","..","data"))
 sys.path.insert(0, os.path.join(os.getcwd(),"..","evaluations"))
-from TfIdfAbstractsModel import TfIdfUnionAbstractsModel
+from TfIdfUnionAbstractsModel import TfIdfUnionAbstractsModel
 
 # Generate model (main + child process).
 

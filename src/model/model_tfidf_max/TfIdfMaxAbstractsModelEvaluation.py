@@ -7,12 +7,16 @@ Created on Tue May  1 14:39:50 2018
 
 ###### Script parameters #######
 
-MIN_DF = 0
-MAX_DF = 1.0
+TFIDF_MIN_DF = 0
+TFIDF_MAX_DF = 1.0
+
 MAX_RECS = 10
 
+TRAINING_DATA = "small"
+TEST_DATA = "small"
+
 BATCHSIZE_EVALUATION = 200
-PROCESSES_EVALUATION = 8
+PROCESSES_EVALUATION = 2
 
 #################################
 
@@ -24,7 +28,7 @@ sys.path.insert(0, os.path.join(os.getcwd()))
 sys.path.insert(0, os.path.join(os.getcwd(),".."))
 sys.path.insert(0, os.path.join(os.getcwd(),"..","..","data"))
 sys.path.insert(0, os.path.join(os.getcwd(),"..","evaluations"))
-from TfIdfAbstractsModel import TfIdfAbstractsModel
+from TfIdfMaxAbstractsModel import TfIdfMaxAbstractsModel
 
 # Method to run in a multiprocessing process.
 
@@ -32,19 +36,20 @@ def evaluate_model(batch):
     result = model.query_batch(batch)
     return result
 
-# Create model in child process.
+# Create model for main and child processes.
+    
+model = TfIdfMaxAbstractsModel(
+        min_df=TFIDF_MIN_DF,
+        max_df=TFIDF_MAX_DF,
+        recs=MAX_RECS
+)
+
+# Child script.
 
 if __name__ != '__main__':
-    
     #sys.stderr = open("debug-multiprocessing.err."+str(os.getppid())+".txt", "w")
     #sys.stdout = open("debug-multiprocessing.out."+str(os.getppid())+".txt", "w")
-    
-    model = TfIdfAbstractsModel(
-            min_df=MIN_DF,
-            max_df=MAX_DF,
-            recs=MAX_RECS
-    )
-    model._load_model()
+    model._load_model(TRAINING_DATA)
 
 # Main script.
 
@@ -56,13 +61,7 @@ if __name__ == '__main__':
     
     # Generate model and train it if needed.
     
-    model = TfIdfAbstractsModel(
-            min_df=MIN_DF,
-            max_df=MAX_DF,
-            recs=MAX_RECS
-    )
-    
-    if not model._has_persistent_model():
+    if not model._has_persistent_model(TRAINING_DATA):
         d_train = DataLoader()
         d_train.training_data("small").abstracts()
         d_train.data = d_train.data[["chapter_abstract","conferenceseries"]].copy()
@@ -72,7 +71,7 @@ if __name__ == '__main__':
         )
         d_train.data.chapter_abstract = d_train.data.chapter_abstract.str.decode("unicode_escape")
         
-        model.train(d_train.data)
+        model.train(d_train.data,TRAINING_DATA)
     
     # Generate test data.
     
@@ -130,7 +129,7 @@ if __name__ == '__main__':
         conferences.extend(result[0])
         confidences.extend(result[1])
         
-    model._load_model()
+    model._load_model(TRAINING_DATA)
 
     ###################### SP VERSION ############################
     """
@@ -145,27 +144,11 @@ if __name__ == '__main__':
     ##############################################################
     
     recommendation = [conferences,confidences]
-        
+    
     # Evaluate.
     
-    print("Computing MAP.")
-    from MAPEvaluation import MAPEvaluation
-    evaluation = MAPEvaluation()
-    ev_map = evaluation.evaluate(recommendation, truth)
+    from EvaluationContainer import EvaluationContainer
+    evaluation = EvaluationContainer()
+    evaluation.evaluate(recommendation,truth)
     
-    print("Computing Recall.")
-    from MeanRecallEvaluation import MeanRecallEvaluation
-    evaluation = MeanRecallEvaluation()
-    ev_recall = evaluation.evaluate(recommendation, truth)
-    
-    print("Computing Precision.")
-    from MeanPrecisionEvaluation import MeanPrecisionEvaluation
-    evaluation = MeanPrecisionEvaluation()
-    ev_precision = evaluation.evaluate(recommendation, truth)
-    
-    print("Computing F1Measure.")
-    from MeanFMeasureEvaluation import MeanFMeasureEvaluation
-    evaluation = MeanFMeasureEvaluation()
-    ev_fmeasure = evaluation.evaluate(recommendation, truth, 1)
-    
-    print("Recall: {}, Precision: {}, F1Measure: {}, MAP: {}, #Recs: {}, Feats: {}".format(ev_recall, ev_precision, ev_fmeasure, ev_map, len(recommendation[0]), model.stem_matrix.shape))
+    print("#Recs: {}, Feats: {}".format(len(recommendation[0]), model.stem_matrix.shape))

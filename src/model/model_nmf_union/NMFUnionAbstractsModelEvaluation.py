@@ -38,32 +38,35 @@ sys.path.insert(0, os.path.join(os.getcwd(),"..","..","data"))
 sys.path.insert(0, os.path.join(os.getcwd(),"..","evaluations"))
 from NMFUnionAbstractsModel import NMFUnionAbstractsModel
 
+# Generate model (main + child process).
+
+model = NMFUnionAbstractsModel(
+        topics=NMF_TOPICS,
+        beta_loss=NMF_BETA_LOSS,
+        solver=NMF_SOLVER,
+        alpha=NMF_ALPHA,
+        random_state=NMF_RANDOM_STATE,
+        verbose=NMF_VERBOSE,
+        init=NMF_INIT,
+        max_iter=NMF_MAX_ITER,
+        min_df=TFIDF_MIN_DF,
+        max_df=TFIDF_MAX_DF,
+        recs=MAX_RECS
+)
+
 # Method to run in a multiprocessing process.
 
 def evaluate_model(batch):
     result = model.query_batch(batch)
     return result
 
-# Create model in child process.
+# Load model in child process.
 
 if __name__ != '__main__':
     
     #sys.stderr = open("debug-multiprocessing.err."+str(os.getppid())+".txt", "w")
     #sys.stdout = open("debug-multiprocessing.out."+str(os.getppid())+".txt", "w")
     
-    model = NMFUnionAbstractsModel(
-            topics=NMF_TOPICS,
-            beta_loss=NMF_BETA_LOSS,
-            solver=NMF_SOLVER,
-            alpha=NMF_ALPHA,
-            random_state=NMF_RANDOM_STATE,
-            verbose=NMF_VERBOSE,
-            init=NMF_INIT,
-            max_iter=NMF_MAX_ITER,
-            min_df=TFIDF_MIN_DF,
-            max_df=TFIDF_MAX_DF,
-            recs=MAX_RECS
-    )
     model._load_model(TRAINING_DATA)
 
 # Main script.
@@ -74,21 +77,7 @@ if __name__ == '__main__':
     import numpy as np
     import time
     
-    # Generate model and train it if needed.
-    
-    model = NMFUnionAbstractsModel(
-            topics=NMF_TOPICS,
-            beta_loss=NMF_BETA_LOSS,
-            solver=NMF_SOLVER,
-            alpha=NMF_ALPHA,
-            random_state=NMF_RANDOM_STATE,
-            verbose=NMF_VERBOSE,
-            init=NMF_INIT,
-            max_iter=NMF_MAX_ITER,
-            min_df=TFIDF_MIN_DF,
-            max_df=TFIDF_MAX_DF,
-            recs=MAX_RECS
-    )
+    # Train model if needed.
     
     if not model._has_persistent_model(TRAINING_DATA):
         d_train = DataLoader()
@@ -162,24 +151,6 @@ if __name__ == '__main__':
         
     # Evaluate.
     
-    print("Computing MAP.")
-    from MAPEvaluation import MAPEvaluation
-    evaluation = MAPEvaluation()
-    ev_map = evaluation.evaluate(recommendation, truth)
-    
-    print("Computing Recall.")
-    from MeanRecallEvaluation import MeanRecallEvaluation
-    evaluation = MeanRecallEvaluation()
-    ev_recall = evaluation.evaluate(recommendation, truth)
-    
-    print("Computing Precision.")
-    from MeanPrecisionEvaluation import MeanPrecisionEvaluation
-    evaluation = MeanPrecisionEvaluation()
-    ev_precision = evaluation.evaluate(recommendation, truth)
-    
-    print("Computing F1Measure.")
-    from MeanFMeasureEvaluation import MeanFMeasureEvaluation
-    evaluation = MeanFMeasureEvaluation()
-    ev_fmeasure = evaluation.evaluate(recommendation, truth, 1)
-    
-    print("Recall: {}, Precision: {}, F1Measure: {}, MAP: {}".format(ev_recall, ev_precision, ev_fmeasure, ev_map))
+    from EvaluationContainer import EvaluationContainer
+    evaluation = EvaluationContainer()
+    evaluation.evaluate(recommendation,truth)

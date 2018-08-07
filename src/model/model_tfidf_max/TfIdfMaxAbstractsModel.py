@@ -14,7 +14,7 @@ import re
 import os
 import pickle
 
-class TfIdfAbstractsModel(AbstractModel):
+class TfIdfMaxAbstractsModel(AbstractModel):
     
     ##########################################
     def __init__(self,recs=10,min_df=0,max_df=1.0):
@@ -30,10 +30,19 @@ class TfIdfAbstractsModel(AbstractModel):
         # number of recommendations to return
         self.recs = recs
         
+        description = "-".join([
+                str(min_df),
+                str(max_df),
+                "{}"
+        ])
+        
+        self.path = os.path.join("..","..","..","data","processed","model_tfidf_max")
+        if not os.path.isdir(self.path):
+            os.mkdir(self.path)
+        
         self.persistent_file = os.path.join(
-                "..","..","..","data","processed",
-                "model_tfidf_max",
-                "abstracts.tfidf_max.model-"+str(min_df)+"-"+str(max_df)+".pkl"
+                self.path,
+                "abstracts.tfidf.model-"+description+".pkl"
         )
     
     ##########################################
@@ -101,8 +110,8 @@ class TfIdfAbstractsModel(AbstractModel):
         return [conferences,confidences]
     
     ##########################################
-    def train(self,data):
-        if not self._load_model():
+    def train(self,data,data_name):
+        if not self._load_model(data_name):
             print("Model not persistent yet. Creating model.")
             #for check in ["abstract","conference","conference_name"]:
             for check in ["chapter_abstract","conferenceseries"]:
@@ -111,7 +120,7 @@ class TfIdfAbstractsModel(AbstractModel):
             
             self.data = data
             self.stem_matrix = self.stem_vectorizer.fit_transform(data.chapter_abstract)
-            self._save_model()
+            self._save_model(data_name)
             #print(self.stem_matrix)
         
     ##########################################
@@ -125,15 +134,21 @@ class TfIdfAbstractsModel(AbstractModel):
         return sorted([(matrix.getcol(idx).sum(), word) for word, idx in vectorizer.vocabulary_.items()], reverse=True)
     
     ##########################################
-    def _save_model(self):
-        with open(self.persistent_file,"wb") as f:
+    def _file(self,data_name):
+        return self.persistent_file.format(data_name)
+    
+    ##########################################
+    def _save_model(self,data_name):
+        file = self._file(data_name)
+        with open(file,"wb") as f:
             pickle.dump([self.stem_matrix, self.stem_vectorizer, self.data], f)
     
     ##########################################
-    def _load_model(self):
-        if self._has_persistent_model():
-            with open(self.persistent_file,"rb") as f:
-                print("... loading ...")
+    def _load_model(self,data_name):
+        file = self._file(data_name)
+        if os.path.isfile(file):
+            with open(file,"rb") as f:
+                print("Loading persistent model.")
                 self.stem_matrix, self.stem_vectorizer, self.data = pickle.load(f)
                 print("... loaded.")
                 return True
@@ -141,8 +156,8 @@ class TfIdfAbstractsModel(AbstractModel):
         return False
     
     ##########################################
-    def _has_persistent_model(self):
-        return os.path.isfile(self.persistent_file)
+    def _has_persistent_model(self,data_name):
+        return os.path.isfile(self._file(data_name))
     
     ##########################################
     def print_top_k(self, k):
