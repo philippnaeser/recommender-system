@@ -48,7 +48,7 @@ def evaluate_model(batch):
     result = model.query_batch(batch)
     return result
 
-# Create model in child process.
+# Load model in child process.
 
 if __name__ != '__main__':
     

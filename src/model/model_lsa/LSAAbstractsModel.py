@@ -90,7 +90,7 @@ class LSAAbstractsModel(AbstractModel):
         print(q_v.shape)
         print(transformed_q_v.shape)
         
-        sim = cosine_similarity(transformed_q_v,self.nmf_L)
+        sim = cosine_similarity(transformed_q_v,self.transformed_matrix)
         print("Cosine similarity computed.")
         o = np.argsort(-np.array(sim))
         
