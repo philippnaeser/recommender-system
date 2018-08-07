@@ -14,7 +14,7 @@ import re
 import os
 import pickle
 
-class TfIdfAbstractsModel(AbstractModel):
+class TfIdfUnionAbstractsModel(AbstractModel):
     
     ##########################################
     def __init__(self,recs=10,min_df=0,max_df=1.0):
@@ -30,10 +30,19 @@ class TfIdfAbstractsModel(AbstractModel):
         # number of recommendations to return
         self.recs = recs
         
+        description = "-".join([
+                str(min_df),
+                str(max_df),
+                "{}"
+        ])
+        
+        self.path = os.path.join("..","..","..","data","processed","model_tfidf_union")
+        if not os.path.isdir(self.path):
+            os.mkdir(self.path)
+        
         self.persistent_file = os.path.join(
-                "..","..","..","data","processed",
-                "model_tfidf2",
-                "abstracts.tfidf2.model-"+str(min_df)+"-"+str(max_df)+".pkl"
+                self.path,
+                "abstracts.tfidf.model-"+description+".pkl"
         )
     
     ##########################################
@@ -48,16 +57,7 @@ class TfIdfAbstractsModel(AbstractModel):
                 str[]: name of the conference
                 double[]: confidence scores
         """
-        q_v = (self.stem_vectorizer.transform([abstract]))
-        #print(q_v)
-        sim = cosine_similarity(q_v,self.stem_matrix)[0]
-        o = np.argsort(-sim)
-        #print(self.data.chapter_abstract[o][0:10])
-        print(self.data.iloc[o[0]].chapter_abstract)
-        return [
-                list(self.data.iloc[o][0:self.recs].conferenceseries),
-                sim[o][0:self.recs]
-                ]
+        return self.query_batch([abstract])
     
     ##########################################
     def query_batch(self,batch):
@@ -100,17 +100,20 @@ class TfIdfAbstractsModel(AbstractModel):
         return [conferences,confidences]
     
     ##########################################
-    def train(self,data):
-        if not self._load_model():
+    def train(self,data,data_name):
+        if not self._load_model(data_name):
             print("Model not persistent yet. Creating model.")
             #for check in ["abstract","conference","conference_name"]:
             for check in ["chapter_abstract","conferenceseries"]:
                 if not check in data.columns:
                     raise IndexError("Column '{}' not contained in given DataFrame.".format(check))
             
+            data.chapter_abstract = data.chapter_abstract + " "
+            data = data.groupby("conferenceseries").sum().reset_index()
             self.data = data
+            
             self.stem_matrix = self.stem_vectorizer.fit_transform(data.chapter_abstract)
-            self._save_model()
+            self._save_model(data_name)
             #print(self.stem_matrix)
         
     ##########################################
@@ -124,14 +127,20 @@ class TfIdfAbstractsModel(AbstractModel):
         return sorted([(matrix.getcol(idx).sum(), word) for word, idx in vectorizer.vocabulary_.items()], reverse=True)
     
     ##########################################
-    def _save_model(self):
-        with open(self.persistent_file,"wb") as f:
+    def _file(self,data_name):
+        return self.persistent_file.format(data_name)
+    
+    ##########################################
+    def _save_model(self,data_name):
+        file = self._file(data_name)
+        with open(file,"wb") as f:
             pickle.dump([self.stem_matrix, self.stem_vectorizer, self.data], f)
     
     ##########################################
-    def _load_model(self):
-        if self._has_persistent_model():
-            with open(self.persistent_file,"rb") as f:
+    def _load_model(self,data_name):
+        file = self._file(data_name)
+        if os.path.isfile(file):
+            with open(file,"rb") as f:
                 print("Loading persistent model.")
                 self.stem_matrix, self.stem_vectorizer, self.data = pickle.load(f)
                 print("... loaded.")
@@ -140,8 +149,8 @@ class TfIdfAbstractsModel(AbstractModel):
         return False
     
     ##########################################
-    def _has_persistent_model(self):
-        return os.path.isfile(self.persistent_file)
+    def _has_persistent_model(self,data_name):
+        return os.path.isfile(self._file(data_name))
     
     ##########################################
     def print_top_k(self, k):
