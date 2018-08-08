@@ -18,7 +18,9 @@ from DataLoader import DataLoader
 d = DataLoader()
 d.training_data("small").contributions()
 
-model = BaselineModel()
+model = BaselineModel(
+        rec=10
+)
 model.train(d.data)
 
 # Generate test data.
@@ -43,27 +45,9 @@ recommendation = model.query_batch(query)
 
 # Evaluation.
 
-print("Computing MAP.")
-from MAPEvaluation import MAPEvaluation
-evaluation = MAPEvaluation()
-ev_map = evaluation.evaluate(recommendation, truth)
-
-print("Computing Recall.")
-from MeanRecallEvaluation import MeanRecallEvaluation
-evaluation = MeanRecallEvaluation()
-ev_recall = evaluation.evaluate(recommendation, truth)
-
-print("Computing Precision.")
-from MeanPrecisionEvaluation import MeanPrecisionEvaluation
-evaluation = MeanPrecisionEvaluation()
-ev_precision = evaluation.evaluate(recommendation, truth)
-
-print("Computing F1Measure.")
-from MeanFMeasureEvaluation import MeanFMeasureEvaluation
-evaluation = MeanFMeasureEvaluation()
-ev_fmeasure = evaluation.evaluate(recommendation, truth, 1)
-
-print("Recall: {}, Precision: {}, F1Measure: {}, MAP: {}".format(ev_recall, ev_precision, ev_fmeasure, ev_map))
+from EvaluationContainer import EvaluationContainer
+evaluation = EvaluationContainer()
+evaluation.evaluate(recommendation, truth)
 
 num_none = sum(x is None for x in recommendation[0])
 size_query = len(query)
