@@ -54,7 +54,7 @@ class LSAAbstractsModel(AbstractModel):
         self.persistent_file_x = os.path.join(self.path,
                                               "abstracts.lsa.model."+description_stem_matrix+".X.pkl")
         self.persistent_file_factors = os.path.join(self.path,
-                                               "abstracts.nmf.model."+description_lsa+".Factors.pkl")
+                                               "abstracts.lsa.model."+description_lsa+".Factors.pkl")
     ##########################################
     def query_single(self,abstract):
         """

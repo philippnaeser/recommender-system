@@ -51,10 +51,8 @@ def evaluate_model(batch):
 # Load model in child process.
 
 if __name__ != '__main__':
-    
     #sys.stderr = open("debug-multiprocessing.err."+str(os.getppid())+".txt", "w")
     #sys.stdout = open("debug-multiprocessing.out."+str(os.getppid())+".txt", "w")
-
     model._load_model(TRAINING_DATA)
 
 # Main script.
@@ -112,7 +110,7 @@ if __name__ == '__main__':
     
     # Batchify the query to avoid OutOfMemory exceptions.
     
-    now = time.time()
+    ###################### MP VERSION POOL #######################
 
     results = None
     
@@ -136,10 +134,20 @@ if __name__ == '__main__':
         confidences.extend(result[1])
         
     model._load_model(TRAINING_DATA)
-        
-    recommendation = [conferences,confidences]
+     
+    ###################### SP VERSION ############################
+    """
+    model._load_model()
+
+    for index, minibatch in enumerate(minibatches,1):
+        print("Running minibatch [{}/{}]".format(index,len(minibatches)))
+        results = model.query_batch(minibatch)
+        conferences.extend(results[0])
+        confidences.extend(results[1])
+    """
+    ##############################################################
     
-    print("After querying: {}".format(now-time.time()))
+    recommendation = [conferences,confidences]
     
     # Evaluate.
     
