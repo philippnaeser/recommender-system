@@ -98,9 +98,6 @@ class NMFAbstractsModel(AbstractModel):
         """
         q_v = (self.stem_vectorizer.transform(batch))
         transformed_q_v = self.nmf.transform(q_v)
-        print("Abstracts transformed.")
-        print(q_v.shape)
-        print(transformed_q_v.shape)
         
         # normalize
         row_sums = transformed_q_v.sum(axis=1)
@@ -108,21 +105,18 @@ class NMFAbstractsModel(AbstractModel):
         transformed_q_v = transformed_q_v / row_sums[:, np.newaxis]
         
         sim = cosine_similarity(transformed_q_v,self.nmf_L)
-        print("Cosine similarity computed.")
         o = np.argsort(-np.array(sim))
         
         conference = list()
         confidence = list()
-        index = 0
         #self.count_init(len(o))
-        for order in o:
+        for index, order in enumerate(o):
             conference.append(
                     list(self.data.iloc[order][0:self.recs].conferenceseries)
             )
             confidence.append(
                     list(sim[index][order][0:self.recs])
             )
-            index += 1
             #self.count()
             
         return [conference,confidence]

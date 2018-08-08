@@ -7,16 +7,23 @@ Created on Sun Aug  5 21:26:40 2018
 
 ###### Script parameters #######
 
-NMF_TOPICS = 10
-NMF_BETA_LOSS = "kullback-leibler" # "frobenius"
-NMF_SOLVER = "mu" # "cd"
-NMF_ALPHA = 0
+""" NMF_INIT
+"random": non-negative random matrices, scaled with: sqrt(X.mean() / n_components)
+"nndsvd": Nonnegative Double Singular Value Decomposition (NNDSVD) initialization (better for sparseness)
+"nndsvda": NNDSVD with zeros filled with the average of X (better when sparsity is not desired)
+"nndsvdar": NNDSVD with zeros filled with small random values (generally faster, less accurate alternative to NNDSVDa for when sparsity is not desired)
+"""
+
+NMF_TOPICS = 100
+NMF_BETA_LOSS = "frobenius" # frobenius # kullback-leibler
+NMF_SOLVER = "cd" # cd # mu
+NMF_ALPHA = 1
 NMF_RANDOM_STATE = 0
 NMF_VERBOSE = True
 NMF_INIT = "random"
 NMF_MAX_ITER = 10
 
-TFIDF_MIN_DF = 10
+TFIDF_MIN_DF = 0
 TFIDF_MAX_DF = 1.0
 
 MAX_RECS = 10
@@ -25,13 +32,17 @@ TRAINING_DATA = "small"
 TEST_DATA = "small"
 
 BATCHSIZE_EVALUATION = 200
-PROCESSES_EVALUATION = 8
+PROCESSES_EVALUATION = 2
 
 #################################
 
 import sys
 import os
 import multiprocessing as mp
+try:
+    mp.set_start_method("spawn")
+except RuntimeError:
+    pass
 
 sys.path.insert(0, os.path.join(os.getcwd(),".."))
 sys.path.insert(0, os.path.join(os.getcwd(),"..","..","data"))
@@ -44,26 +55,27 @@ def evaluate_model(batch):
     result = model.query_batch(batch)
     return result
 
-# Create model in child process.
+# Create model in main and child processes.
+    
+model = NMFAbstractsModel(
+        topics=NMF_TOPICS,
+        beta_loss=NMF_BETA_LOSS,
+        solver=NMF_SOLVER,
+        alpha=NMF_ALPHA,
+        random_state=NMF_RANDOM_STATE,
+        verbose=NMF_VERBOSE,
+        init=NMF_INIT,
+        max_iter=NMF_MAX_ITER,
+        min_df=TFIDF_MIN_DF,
+        max_df=TFIDF_MAX_DF,
+        recs=MAX_RECS
+)
+
+# Child process.
 
 if __name__ != '__main__':
-    
     sys.stderr = open("debug-multiprocessing.err."+str(os.getppid())+".txt", "w")
-    #sys.stdout = open("debug-multiprocessing.out."+str(os.getppid())+".txt", "w")
-    
-    model = NMFAbstractsModel(
-            topics=NMF_TOPICS,
-            beta_loss=NMF_BETA_LOSS,
-            solver=NMF_SOLVER,
-            alpha=NMF_ALPHA,
-            random_state=NMF_RANDOM_STATE,
-            verbose=NMF_VERBOSE,
-            init=NMF_INIT,
-            max_iter=NMF_MAX_ITER,
-            min_df=TFIDF_MIN_DF,
-            max_df=TFIDF_MAX_DF,
-            recs=MAX_RECS
-    )
+    sys.stdout = open("debug-multiprocessing.out."+str(os.getppid())+".txt", "w")
     model._load_model(TRAINING_DATA)
 
 # Main script.
@@ -75,20 +87,6 @@ if __name__ == '__main__':
     import time
     
     # Generate model and train it if needed.
-    
-    model = NMFAbstractsModel(
-            topics=NMF_TOPICS,
-            beta_loss=NMF_BETA_LOSS,
-            solver=NMF_SOLVER,
-            alpha=NMF_ALPHA,
-            random_state=NMF_RANDOM_STATE,
-            verbose=NMF_VERBOSE,
-            init=NMF_INIT,
-            max_iter=NMF_MAX_ITER,
-            min_df=TFIDF_MIN_DF,
-            max_df=TFIDF_MAX_DF,
-            recs=MAX_RECS
-    )
     
     if not model._has_persistent_model(TRAINING_DATA):
         d_train = DataLoader()
@@ -162,24 +160,6 @@ if __name__ == '__main__':
         
     # Evaluate.
     
-    print("Computing MAP.")
-    from MAPEvaluation import MAPEvaluation
-    evaluation = MAPEvaluation()
-    ev_map = evaluation.evaluate(recommendation, truth)
-    
-    print("Computing Recall.")
-    from MeanRecallEvaluation import MeanRecallEvaluation
-    evaluation = MeanRecallEvaluation()
-    ev_recall = evaluation.evaluate(recommendation, truth)
-    
-    print("Computing Precision.")
-    from MeanPrecisionEvaluation import MeanPrecisionEvaluation
-    evaluation = MeanPrecisionEvaluation()
-    ev_precision = evaluation.evaluate(recommendation, truth)
-    
-    print("Computing F1Measure.")
-    from MeanFMeasureEvaluation import MeanFMeasureEvaluation
-    evaluation = MeanFMeasureEvaluation()
-    ev_fmeasure = evaluation.evaluate(recommendation, truth, 1)
-    
-    print("Recall: {}, Precision: {}, F1Measure: {}, MAP: {}".format(ev_recall, ev_precision, ev_fmeasure, ev_map))
+    from EvaluationContainer import EvaluationContainer
+    evaluation = EvaluationContainer()
+    evaluation.evaluate(recommendation, truth)
