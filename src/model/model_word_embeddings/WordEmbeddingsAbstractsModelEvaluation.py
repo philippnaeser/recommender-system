@@ -123,7 +123,6 @@ if __name__ == '__main__':
         time.sleep(5)
         
     print("Tasks completed.")
-    print('results:', results)       
     for result in results:
         conferences.extend(result[0])
         confidences.extend(result[1])

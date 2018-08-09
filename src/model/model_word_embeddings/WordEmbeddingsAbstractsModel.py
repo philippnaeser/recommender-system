@@ -12,8 +12,6 @@ import os
 import pickle
 from EmbeddingsParser import EmbeddingsParser
 from scipy.spatial.distance import cdist
-from sklearn.metrics.pairwise import cosine_similarity
-
 
 class WordEmbeddingsAbstractsModel(AbstractModel):
     
@@ -78,9 +76,9 @@ class WordEmbeddingsAbstractsModel(AbstractModel):
         #print("Abstracts transformed.")
         #print("Dimensionality of batch: {}".format(transformed_q_v.shape))
 
-        sim = cosine_similarity(transformed_q_v, self.embedded_matrix[0])
+        sim = 1-cdist(transformed_q_v, self.embedded_matrix, "cosine")
         #print("Cosine similarity computed.")
-        o = np.argsort(-np.array(sim))
+        o = np.argsort(-sim)
         
         conference = list()
         confidence = list()
@@ -127,7 +125,7 @@ class WordEmbeddingsAbstractsModel(AbstractModel):
             transformed_text.append(content)
         return transformed_text
     
-     ##########################################
+    ##########################################
     def _file_x(self,data_name):
         return self.persistent_file_x.format(data_name)
     
@@ -145,7 +143,7 @@ class WordEmbeddingsAbstractsModel(AbstractModel):
     def _save_model_embeddings(self,data_name):
         file = self._file_embeddings(data_name)
         with open(file,"wb") as f:
-            pickle.dump([self.embedded_matrix], f)
+            pickle.dump(self.embedded_matrix, f)
     
     ##########################################
     def _load_model_x(self,data_name):
@@ -175,7 +173,6 @@ class WordEmbeddingsAbstractsModel(AbstractModel):
     def _load_model(self,data_name):
         return self._load_model_x(data_name) & self._load_model_embeddings(data_name)
 
-    
     ##########################################
     def _has_persistent_model(self,data_name):
         if os.path.isfile(self._file_x(data_name)) and os.path.isfile(self._file_embeddings(data_name)):
