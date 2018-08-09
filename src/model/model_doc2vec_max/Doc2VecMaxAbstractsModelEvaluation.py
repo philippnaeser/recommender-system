@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sun Jul 29 14:43:12 2018
+Created on Fri Aug 10 00:39:50 2018
 
 @author: Andreea
 """
@@ -26,11 +26,11 @@ import multiprocessing as mp
 sys.path.insert(0, os.path.join(os.getcwd(),".."))
 sys.path.insert(0, os.path.join(os.getcwd(),"..","..","data"))
 sys.path.insert(0, os.path.join(os.getcwd(),"..","evaluations"))
-from Doc2VecAbstractsModel import Doc2VecAbstractsModel
+from Doc2VecMaxAbstractsModel import Doc2VecMaxAbstractsModel
 
 # Generate model (main + child process).
 
-model = Doc2VecAbstractsModel(
+model = Doc2VecMaxAbstractsModel(
             embedding_model = EMBEDDING_MODEL,
             recs=MAX_RECS
     )

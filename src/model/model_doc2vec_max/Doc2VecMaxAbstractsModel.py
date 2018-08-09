@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sun Jul 29 14:41:59 2018
+Created on Fri Aug 10 00:39:29 2018
 
 @author: Andreea
 """
@@ -12,7 +12,7 @@ import numpy as np
 import os
 import pickle
 
-class Doc2VecAbstractsModel(AbstractModel):
+class Doc2VecMaxAbstractsModel(AbstractModel):
     
     
     ##########################################
@@ -29,7 +29,7 @@ class Doc2VecAbstractsModel(AbstractModel):
                 "{}"
         ])
     
-        self.path = os.path.join("..","..","..","data","processed","model_doc2vec")
+        self.path = os.path.join("..","..","..","data","processed","model_doc2vec_max")
         if not os.path.isdir(self.path):
             os.mkdir(self.path)
         
@@ -68,30 +68,42 @@ class Doc2VecAbstractsModel(AbstractModel):
             str[]: name of the conference
             double[]: confidence scores
         """
+        conferences = list()
+        confidences = list()
+        #self.count_init(len(batch))
+        
         q_v = self.parser.transform_vectors(batch)
         transformed_q_v = np.asarray(q_v)
         #print("Abstracts transformed.")
         #print("Dimensionality of batch: {}".format(transformed_q_v.shape))
-
+        
         sim = 1-cdist(transformed_q_v, self.embedded_matrix, "cosine")
         #print("Cosine similarity computed.")
         o = np.argsort(-sim)
-        
-        conference = list()
-        confidence = list()
-        index = 0
-        #self.count_init(len(o))
-        for order in o:
-            conference.append(
-                    list(self.data.iloc[order][0:self.recs].conferenceseries)
+
+        for index, order in enumerate(o):
+            data_conf = np.array(self.data["conferenceseries"])[order]
+            data_sim = np.array(sim[index])[order]
+            
+            conference = list()
+            confidence = list()
+            i = 0
+            while len(conference) < self.recs:
+                c = data_conf[i]
+                if c not in conference:
+                    conference.append(c)
+                    confidence.append(data_sim[i])   
+                i += 1
+                
+            conferences.append(
+                    conference
             )
-            confidence.append(
-                    list(sim[index][order][0:self.recs])
+            confidences.append(
+                    confidence
             )
-            index += 1
             #self.count()
             
-        return [conference,confidence]
+        return [conferences,confidences]
     
    ##########################################
     def train(self, data, data_name):
