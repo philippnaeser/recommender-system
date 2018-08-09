@@ -15,17 +15,30 @@ import pickle
 
 class Doc2VecAbstractsModel(AbstractModel):
     
-    persistent_file = os.path.join(
-            os.path.dirname(os.path.realpath(__file__)),
-            "..","..","..","data","processed","abstracts.doc2vec.model.pkl"
-    )
     
     ##########################################
-    def __init__(self, recs=10):
+    def __init__(self, embedding_model, recs=10):
+        self.embedding_model = embedding_model
         self.parser = Doc2VecParser()
-        
+        self.parser.load_model(self.embedding_model)
+
         # number of recommendations to return
         self.recs = recs
+    
+        description_embeddings = "-".join([
+                str(self.embedding_model),
+                "{}"
+        ])
+    
+        self.path = os.path.join("..","..","..","data","processed","model_doc2vec")
+        if not os.path.isdir(self.path):
+            os.mkdir(self.path)
+        
+        self.persistent_file_x = os.path.join(self.path,
+                                              "abstracts.doc2vec.model.X.pkl")
+        
+        self.persistent_file_embeddings = os.path.join(self.path,
+                                               "abstracts.doc2vec.model."+description_embeddings+".Embeddings.pkl")
     
     ##########################################
     def query_single(self, abstract):
@@ -39,16 +52,7 @@ class Doc2VecAbstractsModel(AbstractModel):
             str[]: name of the conference
             double[]: confidence scores
         """
-        q_v = self.parser.transform_vectors([abstract])
-        transformed_q_v = np.asarray(q_v)
-        
-        sim = 1-cdist(transformed_q_v, self.embedded_matrix, "cosine")
-        o = np.argsort(-sim)
-        
-        return [
-                list(self.data.iloc[o][0:self.recs].conferenceseries),
-                sim[o][0:self.recs]
-                ]
+        return self.query_batch([abstract])
     
     ##########################################
     def query_batch(self,batch):
@@ -65,63 +69,102 @@ class Doc2VecAbstractsModel(AbstractModel):
             str[]: name of the conference
             double[]: confidence scores
         """
-        print("Transforming abstracts.")
         q_v = self.parser.transform_vectors(batch)
         transformed_q_v = np.asarray(q_v)
-        print("Abstracts transformed.")
-        
-        sim = 1-cdist(transformed_q_v, self.embedded_matrix, "cosine")
-        o = np.argsort(-sim)
+        #print("Abstracts transformed.")
+        #print("Dimensionality of batch: {}".format(transformed_q_v.shape))
 
+        sim = 1-cdist(transformed_q_v, self.embedded_matrix, "cosine")
+        #print("Cosine similarity computed.")
+        o = np.argsort(-sim)
+        
         conference = list()
         confidence = list()
         index = 0
-        self.count_init(len(o))
+        #self.count_init(len(o))
         for order in o:
             conference.append(
                     list(self.data.iloc[order][0:self.recs].conferenceseries)
             )
             confidence.append(
-                    sim[index][order][0:self.recs]
+                    list(sim[index][order][0:self.recs])
             )
             index += 1
-            self.count()
-        
+            #self.count()
             
         return [conference,confidence]
     
    ##########################################
-    def train(self, data, embedding_model):
-        if not self._load_model():
-            print("Embedded matrix not persistent yet. Creating now.")
+    def train(self, data, data_name):
+        if not self._load_model_x(data_name):
+            print("Transformed data not persistent yet. Transforming now.")
             for check in ["chapter_abstract", "conferenceseries"]:
                 if not check in data.columns:
                     raise IndexError("Column '{}' not contained in given DataFrame.".format(check))
-                    
-            self.parser.load_model(embedding_model)
+
             self.data = data
+            self._save_model_x(data_name)
+        else:
+           if len(self.data) != len(data):
+               raise ValueError("Mismatch vs. persistent training data size: Loaded: {} <-> Given: {}".format(len(self.data),len(data)))
+
+        if not self._load_model_embeddings(data_name):
+            print("Embeddings not persistent yet. Creating now.")
             self.embedded_matrix = self.parser.transform_vectors(data.chapter_abstract)
             self.embedded_matrix = np.asarray(self.embedded_matrix)
-            
-            self._save_model()
-        else:
-            self.parser.load_model(embedding_model)
-
+            self._save_model_embeddings(data_name)
+        
+    ##########################################
+    def _file_x(self,data_name):
+        return self.persistent_file_x.format(data_name)
     
     ##########################################
-    def _save_model(self):
-        with open(Doc2VecAbstractsModel.persistent_file, "wb") as f:
-            pickle.dump([self.data, self.embedded_matrix], f)
-            
+    def _file_embeddings(self,data_name):
+        return self.persistent_file_embeddings.format(data_name)
     
     ##########################################
-    def _load_model(self):
-        if os.path.isfile(Doc2VecAbstractsModel.persistent_file):
-            print("Loading persistent models: Embedded matrix")
-            with open(Doc2VecAbstractsModel.persistent_file,"rb") as f:
-                self.data, self.embedded_matrix = pickle.load(f)
+    def _save_model_x(self,data_name):
+        file = self._file_x(data_name)
+        with open(file,"wb") as f:
+            pickle.dump(self.data, f)
+            
+    ##########################################
+    def _save_model_embeddings(self,data_name):
+        file = self._file_embeddings(data_name)
+        with open(file,"wb") as f:
+            pickle.dump(self.embedded_matrix, f)
+    
+    ##########################################
+    def _load_model_x(self,data_name):
+        file = self._file_x(data_name)
+        if os.path.isfile(file):
+            print("Loading persistent models: X")
+            with open(file,"rb") as f:
+                self.data = pickle.load(f)
                 print("Loaded.")
                 return True
         
         return False
+    
+    ##########################################
+    def _load_model_embeddings(self,data_name):
+        file = self._file_embeddings(data_name)
+        if os.path.isfile(file):
+            print("Loading persistent models: Embeddings")
+            with open(file,"rb") as f:
+                self.embedded_matrix = pickle.load(f)
+                print("Loaded.")
+                return True
+        
+        return False
+    
+    ##########################################
+    def _load_model(self,data_name):
+        return self._load_model_x(data_name) & self._load_model_embeddings(data_name)
 
+    
+    ##########################################
+    def _has_persistent_model(self,data_name):
+        if os.path.isfile(self._file_x(data_name)) and os.path.isfile(self._file_embeddings(data_name)):
+            return True
+        return False
