@@ -353,8 +353,8 @@ class DataLoader:
         except FileNotFoundError:
             return False   
         
-    
-    # get training data
+    ######################################
+    # Get training data
     def training_data(self, which="small"):
         if which == "small":
             return self.papers(["2013","2014","2015"]).conferences().conferenceseries()
@@ -374,8 +374,51 @@ class DataLoader:
             years.remove(2017)
             return self.papers(years).conferences().conferenceseries()
         
+    ######################################
+    # Get training data for abstract models.
+    def training_data_for_abstracts(self,which="small"):
+        self.training_data(which).abstracts()
+        self.data = self.data[["chapter_abstract","conferenceseries"]].copy()
+        self.data.drop(
+            list(self.data[pd.isnull(self.data.chapter_abstract)].index),
+            inplace=True
+        )
+        self.data.chapter_abstract = self.data.chapter_abstract.str.decode("unicode_escape")
         
+        return self
         
-    # get test data
+    ######################################
+    # Get test data.
     def test_data(self, which="small"):
         return self.papers(["2016"]).conferences().conferenceseries()
+    
+    ######################################
+    # Get test data for abstract models.
+    def test_data_for_abstracts(self,which="small"):
+        self.test_data(which).abstracts()
+        self.data = self.data[["chapter_abstract","conferenceseries"]].copy()
+        self.data.drop(
+            list(self.data[pd.isnull(self.data.chapter_abstract)].index),
+            inplace=True
+        )
+        self.data.chapter_abstract = self.data.chapter_abstract.str.decode("unicode_escape")
+        
+        return self
+    
+    ######################################
+    # Get test data ready to use for evaluation.
+    def evaluation_data_for_abstracts(self,which="small"):
+        self.test_data_for_abstracts(which)
+        
+        query_test = list(self.data.chapter_abstract)
+    
+        conferences_truth = list()
+        confidences_truth = list()
+        
+        for conference in list(self.data.conferenceseries):
+            conferences_truth.append([conference])
+            confidences_truth.append([1])
+            
+        truth = [conferences_truth,confidences_truth]
+        
+        return query_test, truth
