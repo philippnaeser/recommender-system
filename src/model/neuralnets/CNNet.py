@@ -5,12 +5,17 @@ Created on Wed Jul 25 14:31:45 2018
 @author: Steff
 """
 import os
+import sys
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
 from AbstractNet import AbstractNet
+sys.path.insert(0, os.path.join(
+        os.path.realpath(__file__),"..","..","neuralnets")
+)
+from EmbeddingsParser import EmbeddingsParser
 
 class CNNet(AbstractNet):
     
@@ -27,7 +32,7 @@ class CNNet(AbstractNet):
         net = CNNet(
                 net_name=meta["net_name"],
                 embedding_model=meta["embedding_model"],
-                embedding_size=meta["embedding_size"],
+                #embedding_size=meta["embedding_size"],
                 classes=meta["classes"],
                 filters=meta["filters"]
         )
@@ -36,12 +41,12 @@ class CNNet(AbstractNet):
         return net
     
     ##################################################
-    def __init__(self,net_name,embedding_model,embedding_size,classes,filters=100):
+    def __init__(self,net_name,embedding_model,classes,filters=100):
         super(CNNet, self).__init__(net_name)
         
         self.filters = filters
         self.embedding_model = embedding_model
-        self.embedding_size = embedding_size
+        self.embedding_size = EmbeddingsParser.lengths[embedding_model]
         self.classes = classes
         self.num_classes = len(classes)
         self.net_name = net_name

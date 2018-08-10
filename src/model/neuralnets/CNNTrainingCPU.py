@@ -76,7 +76,7 @@ print(">>> creating net")
 net = CNNet(
         NET_NAME,
         embedding_model=EMBEDDING_MODEL,
-        embedding_size=EMBEDDING_SIZE,
+        #embedding_size=EMBEDDING_SIZE,
         classes=d_train.classes,
         filters=NUM_FILTERS_CONV
 )

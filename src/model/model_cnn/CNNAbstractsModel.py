@@ -12,11 +12,16 @@ import torch
 import numpy as np
 
 sys.path.insert(0, os.path.join(
+        os.path.realpath(__file__),"..")
+)
+from AbstractClasses import AbstractModel
+sys.path.insert(0, os.path.join(
         os.path.realpath(__file__),"..","..","neuralnets")
 )
-
-from AbstractClasses import AbstractModel
 from CNNet import CNNet
+sys.path.insert(0, os.path.join(
+        os.path.realpath(__file__),"..","..","..","data")
+)
 from EmbeddingsParser import EmbeddingsParser
 
 class CNNAbstractsModel(AbstractModel):
