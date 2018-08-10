@@ -10,18 +10,20 @@ from TimerCounter import Timer
 
 #### TRAINING PARAMETERS ####
 
-USE_CUDA = True
+USE_CUDA = False
 
 # set a name which is used as directory for the save states in "data/processed/nn/<name>"
-NET_NAME = "CNN-100d-w2v-100f"
+NET_NAME = "CNN-test-save-states"
 
 BATCH_SIZE = 250               #50d: 500              # 300d: 150
 CHUNKS_IN_MEMORY = 6           #50d: 1                # 300d: 3
 CHUNK_SIZE = 5000              #50d: 60000            # 300d: 5000
-EPOCHS = 50
+EPOCHS = 1
+
 DATA_TRAIN = "small"
 SHUFFLE_TRAIN = True
 DATA_TEST = "small"
+
 EMBEDDING_MODEL = "w2v_100d_w10_SG_NS"
 EMBEDDING_SIZE = 100
 NUM_FILTERS_CONV = 100
@@ -73,8 +75,9 @@ print(">>> creating net")
 # create Net
 net = CNNet(
         NET_NAME,
+        embedding_model=EMBEDDING_MODEL,
         embedding_size=EMBEDDING_SIZE,
-        classes=d_train.num_classes(),
+        classes=d_train.classes,
         filters=NUM_FILTERS_CONV
 )
 if USE_CUDA:
@@ -92,9 +95,10 @@ losses_train = []
 losses_test = []
 epoch = 0
 
-if CONTINUE_TRAINING and net.save_state_exists():
-    epoch, [losses_train, losses_test] = net.load_state(optimizer)
-    epoch += 1
+if CONTINUE_TRAINING and CNNet.save_state_exists(NET_NAME):
+    model_state = net.load_state(optimizer)
+    epoch = model_state["epoch"] + 1
+    losses_train, losses_test = model_state["losses"]
     print("Continue training at epoch: {}".format(epoch))
 
 #for param in net.conv1.parameters():

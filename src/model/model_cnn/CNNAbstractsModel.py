@@ -5,17 +5,31 @@ Created on Wed Jul 25 14:33:25 2018
 @author: Steff
 """
 
+import os
+import sys
+
 import torch
 import numpy as np
 
+sys.path.insert(0, os.path.join(
+        os.path.realpath(__file__),"..","..","neuralnets")
+)
+
 from AbstractClasses import AbstractModel
+from CNNet import CNNet
+from EmbeddingsParser import EmbeddingsParser
 
 class CNNAbstractsModel(AbstractModel):
     
     ##########################################
-    def __init__(self):
+    def __init__(self,net_name,recs=10):
         # number of recommendations to return
-        self.recs = 10
+        self.recs = recs
+        
+        # load the network from disk
+        self.net = CNNet.from_disk(net_name)
+        self.embeddings_parser = EmbeddingsParser()
+        self.embeddings_parser.load_model(self.net.embedding_model)
     
     ##########################################
     def query_single(self,abstract):
@@ -39,7 +53,7 @@ class CNNAbstractsModel(AbstractModel):
         del input
         
         order = np.argsort(-scores.numpy())[0]
-        conference = self.classes[order[0:self.recs]]
+        conference = self.net.classes[order[0:self.recs]]
         confidence = scores[0,order[0:self.recs]]
             
         return [conference,confidence.numpy()]
@@ -91,7 +105,7 @@ class CNNAbstractsModel(AbstractModel):
         index = 0
         for order in o:
             conference.append(
-                    self.classes[order[0:self.recs]]
+                    self.net.classes[order[0:self.recs]]
             )
             confidence.append(
                     scores[index,order[0:self.recs]]
@@ -102,7 +116,5 @@ class CNNAbstractsModel(AbstractModel):
         return [conference,confidence]
         
     ##########################################
-    def train(self,net,embeddings_parser,classes):
-        self.net = net
-        self.embeddings_parser = embeddings_parser
-        self.classes = classes
+    def train(self):
+        pass
