@@ -45,9 +45,9 @@ class BatchifiedEmbeddingsData():
         self.timer = Timer()
         self.use_cuda = use_cuda
         if use_cuda:
-            self.device = "cuda:0"
+            self.device = torch.device("cuda:0")
         else:
-            self.device = "cpu"
+            self.device = torch.device("cpu")
         
         if os.path.isdir(self.filepath):
             print("Loading {} data from disk. Lazy loading inputs.".format(data_type))
@@ -234,7 +234,7 @@ class BatchifiedEmbeddingsData():
 
         # get labels
         labels = self.data_labels[indices]
-        labels = torch.LongTensor(labels,device=self.device).view(len(labels))#,1)
+        labels = torch.tensor(labels,device=self.device,dtype=torch.long).view(len(labels))#,1)
         
         # get abstracts
         #inputs = self.data_inputs[indices]
@@ -248,7 +248,7 @@ class BatchifiedEmbeddingsData():
         #self.timer_all += timer.toc() #delme
         
         #inputs = torch.cuda.FloatTensor(list(inputs)).unsqueeze(1)
-        inputs = torch.FloatTensor(inputs,device=self.device).unsqueeze(1)
+        inputs = torch.tensor(inputs,device=self.device,dtype=torch.float).unsqueeze(1)
         
         self.batch_current += 1
         self.batch_total += 1
