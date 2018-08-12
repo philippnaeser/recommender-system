@@ -55,49 +55,21 @@ if __name__ != '__main__':
 
 if __name__ == '__main__':
     from DataLoader import DataLoader
-    import pandas as pd
     import numpy as np
     import time
-    
-    # Generate model and train it if needed.
+
+    # Train model if needed.
     
     if not model._has_persistent_model(TRAINING_DATA):
         d_train = DataLoader()
-        d_train.training_data("small").abstracts()
-        d_train.data = d_train.data[["chapter_abstract","conferenceseries"]].copy()
-        d_train.data.drop(
-            list(d_train.data[pd.isnull(d_train.data.chapter_abstract)].index),
-            inplace=True
-        )
-        d_train.data.chapter_abstract = d_train.data.chapter_abstract.str.decode("unicode_escape")
-        
+        d_train.training_data_for_abstracts(TRAINING_DATA)
         model.train(d_train.data,TRAINING_DATA)
-    
-    # Generate test data.
-    
+
+    ### Load test query and truth values.  
     d_test = DataLoader()
-    d_test.test_data("small").abstracts()
-    d_test.data = d_test.data[["chapter_abstract","conferenceseries"]].copy()
-    d_test.data.drop(
-        list(d_test.data[pd.isnull(d_test.data.chapter_abstract)].index),
-        inplace=True
-    )
-    d_test.data.chapter_abstract = d_test.data.chapter_abstract.str.decode("unicode_escape")
-    
-    # Create test query and truth values.
-    
-    query_test = list(d_test.data.chapter_abstract)#[0:1000]
-    
-    conferences_truth = list()
-    confidences_truth = list()
-    
-    for conference in list(d_test.data.conferenceseries):
-        conferences_truth.append([conference])
-        confidences_truth.append([1])
-        
-    truth = [conferences_truth,confidences_truth]
-        
-    # Apply test query and retrieve results.
+    query_test, truth = d_test.evaluation_data_for_abstracts(TEST_DATA)
+   
+   # Apply test query and retrieve results.
     
     minibatches = np.array_split(query_test,int(len(query_test)/BATCHSIZE_EVALUATION))
     
@@ -107,7 +79,7 @@ if __name__ == '__main__':
     # Batchify the query to avoid OutOfMemory exceptions.
     
     ###################### MP VERSION POOL #######################
-    
+
     results = None
     
     def process_ready(r):
@@ -130,10 +102,10 @@ if __name__ == '__main__':
         confidences.extend(result[1])
         
     model._load_model(TRAINING_DATA)
-
+     
     ###################### SP VERSION ############################
     """
-    model._load_model()
+    model._load_model(TRAINING_DATA)
 
     for index, minibatch in enumerate(minibatches,1):
         print("Running minibatch [{}/{}]".format(index,len(minibatches)))
@@ -150,5 +122,3 @@ if __name__ == '__main__':
     from EvaluationContainer import EvaluationContainer
     evaluation = EvaluationContainer()
     evaluation.evaluate(recommendation,truth)
-    
-    print("#Recs: {}, Feats: {}".format(len(recommendation[0]), model.stem_matrix.shape))

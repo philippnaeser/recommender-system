@@ -104,7 +104,7 @@ if __name__ == '__main__':
      
     ###################### SP VERSION ############################
     """
-    model._load_model()
+    model._load_model(TRAINING_DATA)
 
     for index, minibatch in enumerate(minibatches,1):
         print("Running minibatch [{}/{}]".format(index,len(minibatches)))
