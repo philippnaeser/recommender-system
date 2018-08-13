@@ -8,6 +8,8 @@ Created on Fri Jul 13 20:30:27 2018
 
 import os
 from gensim.models.keyedvectors import KeyedVectors
+from sklearn.feature_extraction.text import TfidfVectorizer
+from collections import defaultdict
 import spacy
 import numpy as np
 
@@ -299,6 +301,52 @@ class EmbeddingsParser:
             
         return vectors
        
+      ################################################
+    def transform_tfidf_avg_vectors(self, sentences, tfidf_weights, batch_size = 100):
+        """
+        Transform a list of strings into a list of vectors containing averaged
+        weighted word embeddings.
+        
+        Args:
+            sentence list(str): The list of strings to be transformed.
+            
+        Returns:
+            A list of numpy arrays that contain averaged wieghted 
+            word embeddings for each word given by "sentence".
+        """
+        vectors = list()
+        max_weight = max(tfidf_weights.values())
+        
+        for doc in self.nlp.tokenizer.pipe(sentences, batch_size=batch_size):
+            m = np.empty(self.length)
+            sum_weights = 0
+            for i, w in enumerate(doc):
+                if w in tfidf_weights.keys():
+                    weight = tfidf_weights[w]
+                else:
+                    weight = max_weight 
+                sum_weights += weight
+                m = np.add(m, np.multiply(w.vector, weight))
+            vectors.append(m/sum_weights)
+            
+        return vectors
+       
+    #################################################
+    def compute_tfidf_weights(self, sentences):
+        tfidf = TfidfVectorizer(
+                min_df = 0,
+                max_df = 1.0,
+                ) 
+        tr_sentences = tfidf.fit_transform(sentences)
+        feature_names = tfidf.get_feature_names()
+        feature_index = tr_sentences.nonzero()[1]
+        tfidf_scores = zip(feature_index, [tr_sentences[0, x] for x in feature_index])
+        tfidf_weights = defaultdict(
+                None,
+                [(word, score) for word, score in [(feature_names[i], s) for (i, s) in tfidf_scores]]
+                )
+        
+        return tfidf_weights
         
 ## Example:
 #parser = EmbeddingsParser()
