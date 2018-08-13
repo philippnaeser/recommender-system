@@ -254,6 +254,31 @@ class EmbeddingsParser:
         return vectors
     
     #################################################
+    def transform_tensor_to_fixed_size(self,sentences,embeddings_size,spatial_size,batch_size=100):
+        """
+        Transform a list of strings into a tensor of fixed size containing word embeddings.
+        
+        Args:
+            sentences list(str): The list of strings to be transformed.
+            vector_size(int): 
+            
+        Returns:
+            A list of numpy arrays that contain concatenated word embeddings for each word given by "sentence".
+        """
+        tensor = np.zeros(
+                (len(sentences),embeddings_size,spatial_size),
+                dtype=np.float32
+        )
+        
+        for i_batch, doc in enumerate(self.nlp.tokenizer.pipe(sentences, batch_size=batch_size)):
+            for i_word, word in enumerate(doc):
+                if i_word >= spatial_size:
+                    break
+                tensor[i_batch,:,i_word] = word.vector
+            
+        return tensor
+    
+    #################################################
     def transform_avg_vectors(self,sentences,batch_size=100):
         """
         Transform a list of strings into a list of vectors containing averaged word embeddings.
