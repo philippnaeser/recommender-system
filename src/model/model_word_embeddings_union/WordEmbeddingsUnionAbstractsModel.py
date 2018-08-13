@@ -16,7 +16,7 @@ from scipy.spatial.distance import cdist
 class WordEmbeddingsUnionAbstractsModel(AbstractModel):
     
     ##########################################
-    def __init__(self, embedding_model, pretrained = True, recs=10):
+    def __init__(self, embedding_model, pretrained = True, concat = True, recs=10):
         self.stopList = stopwords.words('english') 
         self.embedding_model = embedding_model
         self.pretrained = pretrained
@@ -26,8 +26,11 @@ class WordEmbeddingsUnionAbstractsModel(AbstractModel):
 
         # number of recommendations to return
         self.recs = recs
+        self.concat = concat
     
         description_embeddings = "-".join([
+                str(self.concat),
+                str(self.pretrained),
                 str(self.embedding_model),
                 "{}"
         ])
@@ -37,10 +40,10 @@ class WordEmbeddingsUnionAbstractsModel(AbstractModel):
             os.mkdir(self.path)
         
         self.persistent_file_x = os.path.join(self.path,
-                                              "abstracts.wordembeddings.model.X.pkl")
+                                              "model-X.pkl")
         
         self.persistent_file_embeddings = os.path.join(self.path,
-                                               "abstracts.wordembeddings.model."+description_embeddings+".Embeddings.pkl")
+                                               "model-"+description_embeddings+"-Embeddings.pkl")
         
     ##########################################
     def query_single(self, abstract):
@@ -105,10 +108,10 @@ class WordEmbeddingsUnionAbstractsModel(AbstractModel):
                 if not check in data.columns:
                     raise IndexError("Column '{}' not contained in given DataFrame.".format(check))
 
-            # Concatenate abstracts per conferenceseries.
-            data.chapter_abstract = data.chapter_abstract + " "
             data.chapter_abstract = self._remove_stopwords(data.chapter_abstract)
-            data = data.groupby("conferenceseries").sum().reset_index()
+            if self.concat:
+                data.chapter_abstract = data.chapter_abstract + " "
+                data = data.groupby("conferenceseries").sum().reset_index()
             self.data = data
             self._save_model_x(data_name)
         else:

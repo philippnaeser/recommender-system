@@ -12,6 +12,7 @@ EMBEDDING_MODEL = "d2v_100d_w5_NS"
 MAX_RECS = 10
 
 TRAINING_DATA = "small"
+TRAINING_DATA_CONCAT = True
 TEST_DATA = "small"
 
 BATCHSIZE_EVALUATION = 200
@@ -32,6 +33,7 @@ from Doc2VecUnionAbstractsModel import Doc2VecUnionAbstractsModel
 
 model = Doc2VecUnionAbstractsModel(
             embedding_model = EMBEDDING_MODEL,
+            concat=TRAINING_DATA_CONCAT,
             recs=MAX_RECS
     )
 

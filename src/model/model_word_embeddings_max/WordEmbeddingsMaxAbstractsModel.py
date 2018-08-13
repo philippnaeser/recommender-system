@@ -28,6 +28,7 @@ class WordEmbeddingsMaxAbstractsModel(AbstractModel):
         self.recs = recs
     
         description_embeddings = "-".join([
+                str(self.pretrained),
                 str(self.embedding_model),
                 "{}"
         ])
@@ -37,10 +38,10 @@ class WordEmbeddingsMaxAbstractsModel(AbstractModel):
             os.mkdir(self.path)
         
         self.persistent_file_x = os.path.join(self.path,
-                                              "abstracts.wordembeddings.model.X.pkl")
+                                              "model-X.pkl")
         
         self.persistent_file_embeddings = os.path.join(self.path,
-                                               "abstracts.wordembeddings.model."+description_embeddings+".Embeddings.pkl")
+                                               "model-"+description_embeddings+"-Embeddings.pkl")
         
     ##########################################
     def query_single(self, abstract):

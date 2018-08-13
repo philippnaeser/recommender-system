@@ -13,6 +13,7 @@ PRETRAINED = False
 MAX_RECS = 10
 
 TRAINING_DATA = "small"
+TRAINING_DATA_CONCAT = True
 TEST_DATA = "small"
 
 BATCHSIZE_EVALUATION = 200
@@ -34,6 +35,7 @@ from WordEmbeddingsUnionAbstractsModel import WordEmbeddingsUnionAbstractsModel
 model = WordEmbeddingsUnionAbstractsModel(
             embedding_model = EMBEDDING_MODEL,
             pretrained = PRETRAINED,
+            concat=TRAINING_DATA_CONCAT,
             recs=MAX_RECS
     )
 

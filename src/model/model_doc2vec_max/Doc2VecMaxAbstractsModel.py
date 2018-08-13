@@ -34,10 +34,10 @@ class Doc2VecMaxAbstractsModel(AbstractModel):
             os.mkdir(self.path)
         
         self.persistent_file_x = os.path.join(self.path,
-                                              "abstracts.doc2vec.model.X.pkl")
+                                              "model-X.pkl")
         
         self.persistent_file_embeddings = os.path.join(self.path,
-                                               "abstracts.doc2vec.model."+description_embeddings+".Embeddings.pkl")
+                                               "model-"+description_embeddings+"-Embeddings.pkl")
     
     ##########################################
     def query_single(self, abstract):
