@@ -19,7 +19,7 @@ import pickle
 class LSAUnionAbstractsModel(AbstractModel):
     
     ##########################################
-    def __init__(self,topics, random_state=0,min_df=0,max_df=1.0,recs=10):
+    def __init__(self,topics, random_state=0,concat=True,recs=10,min_df=0,max_df=1.0,ngram_range=(1,1),max_features=None):
         self.stemmer = PorterStemmer()
         self.token_pattern = re.compile(r"(?u)\b\w\w+\b")
         self.stem_vectorizer = TfidfVectorizer(
@@ -28,20 +28,27 @@ class LSAUnionAbstractsModel(AbstractModel):
                 ,strip_accents = "unicode"
                 ,min_df=min_df
                 ,max_df=max_df
+                ,ngram_range=ngram_range
+                ,max_features=max_features
         )
         # number of recommendations to return
         self.recs = recs
+        self.concat = concat
         
         self.topics = topics
         self.random_state = random_state
         
         description_stem_matrix = "-".join([
+                str(concat),
                 str(min_df),
                 str(max_df),
+                str(ngram_range),
+                str(max_features),
                 "{}"
         ])
     
         description_lsa = "-".join([
+                str(concat),
                 str(self.topics),
                 str(self.random_state),
                 "{}"
@@ -52,9 +59,9 @@ class LSAUnionAbstractsModel(AbstractModel):
             os.mkdir(self.path)
         
         self.persistent_file_x = os.path.join(self.path,
-                                              "abstracts.lsa.model."+description_stem_matrix+".X.pkl")
+                                              "model-"+description_stem_matrix+"-X.pkl")
         self.persistent_file_factors = os.path.join(self.path,
-                                               "abstracts.lsa.model."+description_lsa+".Factors.pkl")
+                                               "model-"+description_lsa+"-Factors.pkl")
         
     ##########################################
     def query_single(self,abstract):
@@ -120,9 +127,9 @@ class LSAUnionAbstractsModel(AbstractModel):
                 if not check in data.columns:
                     raise IndexError("Column '{}' not contained in given DataFrame.".format(check))
             
-            # Concatenate abstracts per conferenceseries.
-            data.chapter_abstract = data.chapter_abstract + " "
-            data = data.groupby("conferenceseries").sum().reset_index()
+            if self.concat:
+                data.chapter_abstract = data.chapter_abstract + " "
+                data = data.groupby("conferenceseries").sum().reset_index()
             self.data = data
             
             # Generate stem matrix.

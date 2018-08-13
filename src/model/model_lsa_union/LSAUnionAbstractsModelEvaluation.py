@@ -12,10 +12,13 @@ LSA_RANDOM_STATE = 0
 
 TFIDF_MIN_DF = 0
 TFIDF_MAX_DF = 1.0
+TFIDF_NGRAM = (1,4)
+TFIDF_MAX_FEATURES = None
 
 MAX_RECS = 10
 
 TRAINING_DATA = "small"
+TRAINING_DATA_CONCAT = True
 TEST_DATA = "small"
 
 BATCHSIZE_EVALUATION = 200
@@ -35,10 +38,13 @@ from LSAUnionAbstractsModel import LSAUnionAbstractsModel
 # Generate model (main + child process).
 
 model = LSAUnionAbstractsModel(
+            concat=TRAINING_DATA_CONCAT,
             topics=LSA_TOPICS,
             random_state=LSA_RANDOM_STATE,
             min_df=TFIDF_MIN_DF,
             max_df=TFIDF_MAX_DF,
+            ngram_range=TFIDF_NGRAM,
+            max_features=TFIDF_MAX_FEATURES,
             recs=MAX_RECS
     )
 

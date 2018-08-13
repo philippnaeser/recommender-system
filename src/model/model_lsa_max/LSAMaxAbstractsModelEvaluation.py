@@ -12,6 +12,8 @@ LSA_RANDOM_STATE = 0
 
 TFIDF_MIN_DF = 0
 TFIDF_MAX_DF = 1.0
+TFIDF_NGRAM = (1,1)
+TFIDF_MAX_FEATURES = None
 
 MAX_RECS = 10
 
@@ -39,6 +41,8 @@ model = LSAMaxAbstractsModel(
             random_state=LSA_RANDOM_STATE,
             min_df=TFIDF_MIN_DF,
             max_df=TFIDF_MAX_DF,
+            ngram_range=TFIDF_NGRAM,
+            max_features=TFIDF_MAX_FEATURES,
             recs=MAX_RECS
     )
 

@@ -18,7 +18,7 @@ import pickle
 class LSAMaxAbstractsModel(AbstractModel):
     
     ##########################################
-    def __init__(self,topics, random_state=0,min_df=0,max_df=1.0,recs=10):
+    def __init__(self,topics, random_state=0,recs=10,min_df=0,max_df=1.0,ngram_range=(1,1),max_features=None):
         self.stemmer = PorterStemmer()
         self.token_pattern = re.compile(r"(?u)\b\w\w+\b")
         self.stem_vectorizer = TfidfVectorizer(
@@ -27,6 +27,8 @@ class LSAMaxAbstractsModel(AbstractModel):
                 ,strip_accents = "unicode"
                 ,min_df=min_df
                 ,max_df=max_df
+                ,ngram_range=ngram_range
+                ,max_features=max_features
         )
         # number of recommendations to return
         self.recs = recs
@@ -37,6 +39,8 @@ class LSAMaxAbstractsModel(AbstractModel):
         description_stem_matrix = "-".join([
                 str(min_df),
                 str(max_df),
+                str(ngram_range),
+                str(max_features),
                 "{}"
         ])
     
@@ -51,9 +55,9 @@ class LSAMaxAbstractsModel(AbstractModel):
             os.mkdir(self.path)
         
         self.persistent_file_x = os.path.join(self.path,
-                                              "abstracts.lsa.model."+description_stem_matrix+".X.pkl")
+                                              "model-"+description_stem_matrix+"-X.pkl")
         self.persistent_file_factors = os.path.join(self.path,
-                                               "abstracts.lsa.model."+description_lsa+".Factors.pkl")
+                                               "model-"+description_lsa+"-Factors.pkl")
         
     ##########################################
     def query_single(self,abstract):
