@@ -383,6 +383,7 @@ class DataLoader:
             list(self.data[pd.isnull(self.data.chapter_abstract)].index),
             inplace=True
         )
+        self.data = self.data.reset_index()
         self.data.chapter_abstract = self.data.chapter_abstract.str.decode("unicode_escape")
         
         return self
@@ -401,6 +402,7 @@ class DataLoader:
             list(self.data[pd.isnull(self.data.chapter_abstract)].index),
             inplace=True
         )
+        self.data = self.data.reset_index()
         self.data.chapter_abstract = self.data.chapter_abstract.str.decode("unicode_escape")
         
         return self
