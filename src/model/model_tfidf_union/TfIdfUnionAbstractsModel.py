@@ -17,7 +17,7 @@ import pickle
 class TfIdfUnionAbstractsModel(AbstractModel):
     
     ##########################################
-    def __init__(self,recs=10,min_df=0,max_df=1.0):
+    def __init__(self,concat=True,recs=10,min_df=0,max_df=1.0,ngram_range=(1,1),max_features=None):
         self.stemmer = PorterStemmer()
         self.token_pattern = re.compile(r"(?u)\b\w\w+\b")
         self.stem_vectorizer = TfidfVectorizer(
@@ -26,13 +26,19 @@ class TfIdfUnionAbstractsModel(AbstractModel):
                 #,strip_accents = "unicode"
                 ,min_df=min_df
                 ,max_df=max_df
+                ,ngram_range=ngram_range
+                ,max_features=max_features
         )
         # number of recommendations to return
         self.recs = recs
+        self.concat = concat
         
         description = "-".join([
+                str(concat),
                 str(min_df),
                 str(max_df),
+                str(ngram_range),
+                str(max_features),
                 "{}"
         ])
         
@@ -42,7 +48,7 @@ class TfIdfUnionAbstractsModel(AbstractModel):
         
         self.persistent_file = os.path.join(
                 self.path,
-                "abstracts.tfidf.model-"+description+".pkl"
+                "model-"+description+".pkl"
         )
     
     ##########################################
@@ -108,8 +114,9 @@ class TfIdfUnionAbstractsModel(AbstractModel):
                 if not check in data.columns:
                     raise IndexError("Column '{}' not contained in given DataFrame.".format(check))
             
-            data.chapter_abstract = data.chapter_abstract + " "
-            data = data.groupby("conferenceseries").sum().reset_index()
+            if self.concat:
+                data.chapter_abstract = data.chapter_abstract + " "
+                data = data.groupby("conferenceseries").sum().reset_index()
             self.data = data
             
             self.stem_matrix = self.stem_vectorizer.fit_transform(data.chapter_abstract)

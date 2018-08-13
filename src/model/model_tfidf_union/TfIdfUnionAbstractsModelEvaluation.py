@@ -9,10 +9,13 @@ Created on Tue May  1 14:39:50 2018
 
 TFIDF_MIN_DF = 0
 TFIDF_MAX_DF = 1.0
+TFIDF_NGRAM = (1,3)
+TFIDF_MAX_FEATURES = None
 
 MAX_RECS = 10
 
 TRAINING_DATA = "small"
+TRAINING_DATA_CONCAT = True
 TEST_DATA = "small"
 
 BATCHSIZE_EVALUATION = 200
@@ -32,8 +35,11 @@ from TfIdfUnionAbstractsModel import TfIdfUnionAbstractsModel
 # Generate model (main + child process).
 
 model = TfIdfUnionAbstractsModel(
+        concat=TRAINING_DATA_CONCAT,
         min_df=TFIDF_MIN_DF,
         max_df=TFIDF_MAX_DF,
+        ngram_range=TFIDF_NGRAM,
+        max_features=TFIDF_MAX_FEATURES,
         recs=MAX_RECS
 )
 
@@ -46,10 +52,8 @@ def evaluate_model(batch):
 # Load model in child process.
 
 if __name__ != '__main__':
-    
     #sys.stderr = open("debug-multiprocessing.err."+str(os.getppid())+".txt", "w")
     #sys.stdout = open("debug-multiprocessing.out."+str(os.getppid())+".txt", "w")
-
     model._load_model(TRAINING_DATA)
 
 # Main script.
@@ -65,12 +69,13 @@ if __name__ == '__main__':
         d_train = DataLoader()
         d_train.training_data_for_abstracts(TRAINING_DATA)
         model.train(d_train.data,TRAINING_DATA)
-
-    ### Load test query and truth values.  
+        
+    # Generate test query and truth values.
+    
     d_test = DataLoader()
     query_test, truth = d_test.evaluation_data_for_abstracts(TEST_DATA)
-   
-   # Apply test query and retrieve results.
+
+    # Apply test query and retrieve results.
     
     minibatches = np.array_split(query_test,int(len(query_test)/BATCHSIZE_EVALUATION))
     
@@ -79,7 +84,7 @@ if __name__ == '__main__':
     
     # Batchify the query to avoid OutOfMemory exceptions.
     
-    ###################### MP VERSION POOL #######################
+    now = time.time()
 
     results = None
     
@@ -103,23 +108,15 @@ if __name__ == '__main__':
         confidences.extend(result[1])
         
     model._load_model(TRAINING_DATA)
-     
-    ###################### SP VERSION ############################
-    """
-    model._load_model(TRAINING_DATA)
-
-    for index, minibatch in enumerate(minibatches,1):
-        print("Running minibatch [{}/{}]".format(index,len(minibatches)))
-        results = model.query_batch(minibatch)
-        conferences.extend(results[0])
-        confidences.extend(results[1])
-    """
-    ##############################################################
-    
+        
     recommendation = [conferences,confidences]
+    
+    print("After querying: {}".format(time.time()-now))
     
     # Evaluate.
     
     from EvaluationContainer import EvaluationContainer
     evaluation = EvaluationContainer()
     evaluation.evaluate(recommendation,truth)
+    
+    print("#Recs: {}, Feats: {}".format(len(recommendation[0]), model.stem_matrix.shape))

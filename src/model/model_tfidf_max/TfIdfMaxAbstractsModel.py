@@ -17,7 +17,7 @@ import pickle
 class TfIdfMaxAbstractsModel(AbstractModel):
     
     ##########################################
-    def __init__(self,recs=10,min_df=0,max_df=1.0):
+    def __init__(self,recs=10,min_df=0,max_df=1.0,ngram_range=(1,1),max_features=None):
         self.stemmer = PorterStemmer()
         self.token_pattern = re.compile(r"(?u)\b\w\w+\b")
         self.stem_vectorizer = TfidfVectorizer(
@@ -26,6 +26,8 @@ class TfIdfMaxAbstractsModel(AbstractModel):
                 #,strip_accents = "unicode"
                 ,min_df=min_df
                 ,max_df=max_df
+                ,ngram_range=ngram_range
+                ,max_features=max_features
         )
         # number of recommendations to return
         self.recs = recs
@@ -33,6 +35,8 @@ class TfIdfMaxAbstractsModel(AbstractModel):
         description = "-".join([
                 str(min_df),
                 str(max_df),
+                str(ngram_range),
+                str(max_features),
                 "{}"
         ])
         
@@ -42,7 +46,7 @@ class TfIdfMaxAbstractsModel(AbstractModel):
         
         self.persistent_file = os.path.join(
                 self.path,
-                "abstracts.tfidf.model-"+description+".pkl"
+                "model-"+description+".pkl"
         )
     
     ##########################################
