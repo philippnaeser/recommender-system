@@ -333,6 +333,17 @@ class EmbeddingsParser:
        
     #################################################
     def compute_tfidf_weights(self, sentences):
+        """
+        Calculate the TFIDF weights of a list of documents.
+        
+        Args:
+            sentence list(str): The list of strings for which the TFIDF is to 
+                                be computed.
+            
+        Returns:
+            A dictionary (token, tfidf_score) containing the tfidf score 
+            for each token in the "sentence".
+        """
         tfidf = TfidfVectorizer(
                 min_df = 0,
                 max_df = 1.0,

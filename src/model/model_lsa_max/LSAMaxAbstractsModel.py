@@ -94,12 +94,12 @@ class LSAMaxAbstractsModel(AbstractModel):
         
         q_v = (self.stem_vectorizer.transform(batch))
         transformed_q_v = self.trsvd.transform(q_v)
-        print("Abstracts transformed.")
-        print(q_v.shape)
-        print(transformed_q_v.shape)
+        #print("Abstracts transformed.")
+        #print(q_v.shape)
+        #print(transformed_q_v.shape)
         
         sim = cosine_similarity(transformed_q_v,self.transformed_matrix)
-        print("Cosine similarity computed.")
+        #print("Cosine similarity computed.")
         o = np.argsort(-np.array(sim))
         
         for index, order in enumerate(o):
