@@ -176,7 +176,7 @@ class LSAUnionAbstractsModel(AbstractModel):
     def _save_model_factors(self,data_name):
         file = self._file_factors(data_name)
         with open(file,"wb") as f:
-            pickle.dump([self.trsvd, self.transformed_matrix], f)
+            pickle.dump([self.trsvd, self.transformed_matrix], f, protocol=4)
     
     ##########################################
     def _load_model_x(self,data_name):
