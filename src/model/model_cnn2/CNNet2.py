@@ -72,7 +72,7 @@ class CNNet2(AbstractNet):
         
         self.fc1 = nn.Linear(3*filters,self.num_classes)
         
-        #self.dropout = nn.Dropout(p=0.5)
+        self.dropout = nn.Dropout(p=0.5)
         
         #self.softmax = nn.LogSoftmax(dim=1)
         
@@ -94,12 +94,14 @@ class CNNet2(AbstractNet):
         
         x = torch.cat((x1,x2,x3),dim=1)
         
+        x = self.dropout(x)
+        
         x = self.fc1(x.view(x.size()[0],-1))
         
         return x#self.softmax(x)
     
     ##################################################
-    def save_state(self,epoch,losses,optimizer,final=False):
+    def save(self,epoch,losses,optimizer,final=False):
         self.model_state = {
                 "epoch":epoch,
                 "losses":losses,
@@ -107,11 +109,7 @@ class CNNet2(AbstractNet):
                 "optimizer":optimizer.state_dict(),
                 "training_time":self.training_time
         }
-        file_state = os.path.join(
-                AbstractNet.path_persistent,
-                self.net_name,
-                AbstractNet.filename + ("" if final else ".e"+str(epoch))
-        )
+        self.save_state(epoch,final)
         
         self.model_meta = {
                 "embedding_size":self.embedding_size,
@@ -120,14 +118,7 @@ class CNNet2(AbstractNet):
                 "filters":self.filters,
                 "net_name":self.net_name
         }
-        file_meta = os.path.join(
-                AbstractNet.path_persistent,
-                self.net_name,
-                AbstractNet.filename + ".meta"
-        )
-
-        torch.save(self.model_state, file_state)
-        torch.save(self.model_meta, file_meta)
+        self.save_meta()
     
     ##################################################
     def load_state(self,optimizer=None,epoch=None):
@@ -144,17 +135,3 @@ class CNNet2(AbstractNet):
             self.training_time = self.model_state["training_time"]
         
         return self.model_state
-    
-    ##################################################
-    @staticmethod
-    def load_meta(net_name):
-        return torch.load(os.path.join(AbstractNet.path_persistent,net_name,AbstractNet.filename_meta))
-    
-    ##################################################
-    @staticmethod
-    def save_state_exists(net_name):
-        return os.path.isfile(
-            os.path.join(AbstractNet.path_persistent,net_name,AbstractNet.filename)
-        ) & os.path.isfile(
-            os.path.join(AbstractNet.path_persistent,net_name,AbstractNet.filename_meta)
-        )

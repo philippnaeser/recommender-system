@@ -1,6 +1,7 @@
 import gc
 import sys
 import os
+import shutil
 
 import torch
 import torch.optim as optim
@@ -9,12 +10,12 @@ import math
 
 #### TRAINING PARAMETERS ####
 
-USE_CUDA = False
+USE_CUDA = True
 
 # set a name which is used as directory for the save states in "data/processed/nn/<name>"
-NET_NAME = "CNN2-test"
+NET_NAME = "CNN2-150f-0.0005decay-test"
 
-BATCH_SIZE = 250               #50d: 500              # 300d: 150
+BATCH_SIZE = 1000               #50d: 500              # 300d: 150
 EPOCHS = 1
 
 DATA_TRAIN = "small"
@@ -22,17 +23,17 @@ SHUFFLE_TRAIN = True
 DATA_TEST = "small"
 
 EMBEDDING_MODEL = "w2v_100d_w10_SG_NS"
-NUM_FILTERS_CONV = 100
-WEIGHT_DECAY = 0.0005
+NUM_FILTERS_CONV = 150
+WEIGHT_DECAY = 0.0005           # L2-reg
 
-VERBOSE_EPOCHS = True
+VERBOSE_EPOCHS = False
 VERBOSE_EPOCHS_STEPS = 10
 
 # keep states of each epoch of the net
 KEEP_STATES = True
 
 # load the last saved state and continue training
-CONTINUE_TRAINING = False
+CONTINUE_TRAINING = True
 
 ########### CUDA ############
 
@@ -168,14 +169,18 @@ for epoch in range(epoch,epoch+EPOCHS):
     losses_test.append(running_loss)
     
     if KEEP_STATES:
-        net.save_state(epoch,[losses_train,losses_test],optimizer)
+        net.save(epoch,[losses_train,losses_test],optimizer)
 
 #save final model state
-net.save_state(epoch,[losses_train,losses_test],optimizer,True)
+net.save(epoch,[losses_train,losses_test],optimizer,True)
 
 # draw losses
 net.plot_losses()
 net.print_stats()
+
+# copy training files.
+shutil.copy(net.__module__ + ".py",net.path_save_states)
+shutil.copy(__file__,net.path_save_states)
 
 #for param in net.conv1.parameters():
 #    print(param)
