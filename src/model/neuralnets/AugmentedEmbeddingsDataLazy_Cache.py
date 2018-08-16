@@ -104,8 +104,9 @@ class AugmentedEmbeddingsDataLazy():
                 self.classes, self.data_size = pickle.load(f)
                 
             # Load all abstracts into memory.
-            for i in range(len(self.classes)-1):
-                self._load_file(i)
+            #for i in range(len(self.classes)-1):
+            #    self._load_file(i)
+            self._load_file(0)
         
         else:
             timer = Timer()
@@ -273,7 +274,7 @@ class AugmentedEmbeddingsDataLazy():
     ##################################################
     def _augment_abstract(self,text,conf,multiplier,abstract_list,conference_list,translate=True,shuffle=True):
         # Add the original abstract.
-        abstract_list.append(text)
+        abstract_list.append(self._tokenize(text))
         # Add label for the original abstract.
         conference_list.append(conf)
         
@@ -306,18 +307,23 @@ class AugmentedEmbeddingsDataLazy():
                     if length >= multiplier:
                         break
                     abstract_new = " ".join(p)
-                    abstract_tokenized = self.tokenizer(abstract_new)
-                    abstract_tokenized_list = [t.text for t in abstract_tokenized]
-                    abstract_list.append(abstract_tokenized_list)
+                    abstract_list.append(self._tokenize(abstract_new))
                     conference_list.append(conf)
                     length += 1
                     self.data_size += 1
+                    
+    ##################################################
+    def _tokenize(self,abstract):
+        abstract_tokenized = self.tokenizer(abstract)
+        return [t.text for t in abstract_tokenized]
+                    
     
 
 
 #timer = Timer()
 #test = AugmentedEmbeddingsDataLazy(use_cuda=False,data_which="small",embeddings_model="w2v_100d_w10_SG_NS")
-#test.batchify(1000)
+#test.batchify(1000,shuffle=False)
+#t=test.next_batch()
 
 #timer.tic()
 #while test.has_next_batch():
