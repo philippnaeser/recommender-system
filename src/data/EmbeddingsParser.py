@@ -133,9 +133,13 @@ class EmbeddingsParser:
     
     models = {}
     
-    nlp = spacy.load("en", vectors=False)
+    #################################################
+    @staticmethod
+    def _get_keyed_vectors(model,binary):
+        return KeyedVectors.load_word2vec_format(EmbeddingsParser.paths[model + "-w2v"], binary=binary)
         
-    def load_model(self, model, pretrained = True):
+    #################################################
+    def load_model(self, model, pretrained=True):
         """
         Loads a pre-trained word embedding to be used by this parser.
         
@@ -176,11 +180,13 @@ class EmbeddingsParser:
                     print("Model not loaded yet, loading it.")
                     binary = True
                 
-                self.models[model + "-w2v"] = KeyedVectors.load_word2vec_format(self.paths[model + "-w2v"], binary=binary)             
+                self.models[model + "-w2v"] = EmbeddingsParser._get_keyed_vectors(model,binary)
                 self.current_model = self.models[model + "-w2v"]
                 self.length = self.lengths[model]
             
             print("Setting up spacy vocab.")
+            
+            self.nlp = spacy.load("en", vectors=False)
             
             count = 0
             for word, o in self.current_model.vocab.items():
