@@ -74,7 +74,15 @@ class WikiCFPLinker():
             #Link conference series that match between SciGraph and WikiCFP
             if len(self.scigraph_notmatched)!=0:
                 self._link_series_to_series()
-            
+               
+            for wikicfp_series in self.wikicfp_series:  
+                if wikicfp_series not in self.wikicfp_notmatched:       
+                    matched_names = self.wikicfp_conf[
+                            self.wikicfp_conf["Conference Series"]==wikicfp_series
+                            ]["Name"].tolist()
+                    for name in matched_names:
+                        self.wikicfp_names_notmatched.remove(name)
+
             #Link SciGraph conference series to WikiCFP most recent conference 
             #name belonging to a series
             if len(self.scigraph_notmatched)!=0:
@@ -431,7 +439,8 @@ class WikiCFPLinker():
             dataFrame: The WikiCFP conferences names and start dates.
         """
         self.crawler._load_conferences()
-        wikicfp_conf = self.crawler.all_conferences[["Name", "Start Date"]].drop_duplicates()
+        wikicfp_conf = self.crawler.all_conferences[["Name", "Conference Series", "Start Date"]]\
+                            .drop_duplicates()
         
         return wikicfp_conf
     
