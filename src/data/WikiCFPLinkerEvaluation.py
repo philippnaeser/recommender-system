@@ -9,7 +9,7 @@ Created on Thu Sep  6 09:59:50 2018
 REMOVE_STOPWORDS = True
 
 ##One of {"levenshtein", "damerau_levenshtein", "jaro", "jaro_winkler"}.
-SIMILARITY_METRIC = "jaro"
+SIMILARITY_METRIC = "damerau_levenshtein"
 MATCH_THRESHOLD = 0.9
 
 DATA_NAME = "small"

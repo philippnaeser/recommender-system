@@ -10,7 +10,6 @@ import os
 import pickle
 import pandas as pd
 import operator
-import Levenshtein as lv
 import jellyfish as jf 
 from nltk.corpus import stopwords
 from WikiCFPCrawler import WikiCFPCrawler
@@ -20,16 +19,16 @@ class WikiCFPLinker():
     
     ##########################################
     def __init__(self, remove_stopwords = True, 
-                 similarity_metric = "jaro", 
+                 similarity_metric = "damerau_levenshtein", 
                  match_threshold = 0.9, 
                  data_name = "small"):
         
         self.crawler = WikiCFPCrawler()
-        
-        self.wikicfp_conf = self._load_wikicfp_series()
-        self.wikicfp_series = self.wikicfp_conf["Conference Series"].drop_duplicates()
+               
+        self.wikicfp_conf =  self._load_wikicfp_conferences()
+        self.wikicfp_series = self._load_wikicfp_series()
         self.scigraph_series = self._load_scigraph_series(data_name)
-        
+
         self.remove_stopwords = remove_stopwords
         if self.remove_stopwords:
             self.stopwords = stopwords.words('english')
@@ -92,17 +91,21 @@ class WikiCFPLinker():
                                    .sort_values("similarity_score", ascending=False)\
                                 .drop_duplicates(subset=["conferenceseries"])\
                                 .sort_index()
-    
+            self.correspondences.drop(
+                    columns = ["conferenceseries_name", "similarity_score"],
+                    inplace = True
+                    )
+            
             #Save correspondences
             self._save_correspondences()
-    
+
             #Save remaining SciGraph conference series to be matched
             scigraph_notmatched_series = pd.DataFrame(
                     self.scigraph_notmatched,
                     columns = ["conferenceseries_name"]
                     )
             scigraph_notmatched_series.to_csv(self.scigraph_notmatched_file)
-            
+
             #Save remaining SciGraph conference series to be matched
             wikicfp_notmatched_series = pd.DataFrame(
                     self.wikicfp_notmatched,
@@ -120,19 +123,26 @@ class WikiCFPLinker():
         """
         print("Computing equal matching.")
         checked = list()
+        count = len(self.scigraph_series["conferenceseries_name"])
+        checkpoint = max(int(count/20),1)
+        i = 0
         
         for series_name in self.scigraph_series["conferenceseries_name"]:
-            if series_name in self.scigraph_notmatched:                
-                for index in self.wikicfp_series.index.tolist():
-                    wikicfp_series = self.wikicfp_series[index]
+            if (i%checkpoint)==0:
+                print("Linking: {}%".format(int(i/count*100)))
+            
+            if len(self.scigraph_notmatched)==0:
+                break
+            
+            if series_name in self.scigraph_notmatched:
+                processed_scigraph_series = self._preprocess_string(series_name)
+                
+                for wikicfp_series in self.wikicfp_series:  
+                    if len(self.wikicfp_series)==0:
+                        break
                     
-                    if wikicfp_series in self.wikicfp_notmatched:
-                        if self.remove_stopwords:
-                            processed_wikicfp_series = self._remove_stopwords(wikicfp_series.lower())
-                            processed_scigraph_series = self._remove_stopwords(series_name.lower())
-                        else:
-                            processed_wikicfp_series = wikicfp_series.lower()
-                            processed_scigraph_series = series_name.lower()
+                    if wikicfp_series in self.wikicfp_notmatched:                
+                        processed_wikicfp_series = self._preprocess_string(wikicfp_series)
                          
                         if processed_scigraph_series == processed_wikicfp_series:
                             similarity = 1.0
@@ -142,9 +152,11 @@ class WikiCFPLinker():
                             self.matches.append([sg_series, series_name, wikicfp_series, similarity])   
                             self.wikicfp_notmatched.remove(wikicfp_series)
                             checked.append(series_name)
+                        
                 if series_name in checked:
                     self.scigraph_notmatched.remove(series_name)  
-
+            i += 1
+            
         print("Equal matching computed.")   
     
     ##########################################
@@ -156,21 +168,28 @@ class WikiCFPLinker():
         """
         print("Computing series-to-series similarities.")
         checked = list()
+        count = len(self.scigraph_series["conferenceseries_name"])
+        checkpoint = max(int(count/20),1)
+        i = 0
         
         for series_name in self.scigraph_series["conferenceseries_name"]:
+            if (i%checkpoint)==0:
+                print("Linking: {}%".format(int(i/count*100)))
+            
+            if len(self.scigraph_notmatched)==0:
+                break
+            
             if series_name in self.scigraph_notmatched:
-                for index in self.wikicfp_series.index.tolist():
-                    wikicfp_series = self.wikicfp_series[index]
+                processed_scigraph_series = self._preprocess_string(series_name)
+                
+                for wikicfp_series in self.wikicfp_series:
+                    if len(self.wikicfp_series)==0:
+                        break
                     
                     if wikicfp_series in self.wikicfp_notmatched:
-                        if self.remove_stopwords:
-                            processed_wikicfp_series = self._remove_stopwords(wikicfp_series.lower())
-                            processed_scigraph_series = self._remove_stopwords(series_name.lower())
-                        else:
-                            processed_wikicfp_series = wikicfp_series.lower()
-                            processed_scigraph_series = series_name.lower()
-                         
+                        processed_wikicfp_series = self._preprocess_string(wikicfp_series)
                         similarity = self.similarity_measure(processed_scigraph_series, processed_wikicfp_series)
+                        
                         if similarity >= self.match_threshold:
                             sg_series = self.scigraph_series[
                                     self.scigraph_series["conferenceseries_name"] == series_name
@@ -178,10 +197,10 @@ class WikiCFPLinker():
                             self.matches.append([sg_series, series_name, wikicfp_series, similarity])   
                             self.wikicfp_notmatched.remove(wikicfp_series)
                             checked.append(series_name)
-                            
+                        
                 if series_name in checked:
                     self.scigraph_notmatched.remove(series_name)  
-
+            i += 1
         print("Series-to-series similarities computed.")   
         
     ##########################################
@@ -195,38 +214,46 @@ class WikiCFPLinker():
         """
         print("Computing series-to-name similarities.")
         checked = list()
-        
+        count = len(self.scigraph_series["conferenceseries_name"])
+        checkpoint = max(int(count/100),1)
+        i = 0
+
         for series_name in self.scigraph_series["conferenceseries_name"]:
+            if (i%checkpoint)==0:
+                print("Linking: {}%".format(int(i/count*100)))
+            
+            if len(self.scigraph_notmatched)==0:
+                break
+            
             if series_name in self.scigraph_notmatched:
-                for index in self.wikicfp_conf["Name"].index.tolist():
-                    wikicfp_name = self.wikicfp_conf['Name'][index]
+                processed_scigraph_series = self._preprocess_string(series_name)
+                
+                for wikicfp_name in self.wikicfp_conf["Name"]:
+                    if len(self.wikicfp_names_notmatched)==0:
+                        break
                     
                     if wikicfp_name in self.wikicfp_names_notmatched:
-                        if self.remove_stopwords:
-                            processed_wikicfp_name = self._remove_stopwords(wikicfp_name.lower())
-                            processed_scigraph_series = self._remove_stopwords(series_name.lower())
-                        else:
-                            processed_wikicfp_name = wikicfp_name.lower()
-                            processed_scigraph_series = series_name.lower()
-        
+                        processed_wikicfp_name = self._preprocess_string(wikicfp_name)
                         similarity = self.similarity_measure(processed_scigraph_series, processed_wikicfp_name)
+                        
                         if similarity >= self.match_threshold:
                             sg_series = self.scigraph_series[
                                     self.scigraph_series["conferenceseries_name"] == series_name
                                     ]["conferenceseries"].tolist()[0]
                             wikicfp_name = self._get_most_recent(wikicfp_name)
                             self.matches.append([sg_series, series_name, wikicfp_name, similarity])
-                            checked.append(series_name)
-                               
+                        checked.append(series_name)
+            
                 if series_name in checked:        
                     self.scigraph_notmatched.remove(series_name)         
-                         
+            i += 1
+            
         print("Series-to-name similarities computed.")
     
     ##########################################
-    def _get_most_recent(self, conf_name): 
+    def _get_most_recent(self, wikicfp_name): 
         """
-        Returns the most similar WikiCFP conference from several WiiCFP 
+        Returns the most similar WikiCFP conference from several WikiCFP 
         conferences with similar names.
         
         Args:
@@ -238,18 +265,22 @@ class WikiCFPLinker():
         """
         repeating_conf= list()
         
-        for index in self.wikicfp_conf["Name"].index.tolist():
-            similarity = self.similarity_measure(self.wikicfp_conf["Name"][index], conf_name)
+        for conf_name in self.wikicfp_names_notmatched:
+            similarity = self.similarity_measure(conf_name, wikicfp_name)
+            
             if similarity >= self.match_threshold:
-                repeating_conf.append((
-                        self.wikicfp_conf["Name"][index], 
-                        self.wikicfp_conf["Start Date"][index]
-                        ))
-        most_recent = max(repeating_conf, key=operator.itemgetter(1))[0]   
+                conf_date = self.wikicfp_conf[
+                        self.wikicfp_conf["Name"]==conf_name
+                        ]["Start Date"].tolist()[0]
+                if conf_date == None:
+                    conf_date = "0000-00-00"
+                repeating_conf.append((conf_name, conf_date))
         
-        for wikicfp_name in [elem[0] for elem in repeating_conf]:
-            if wikicfp_name in self.wikicfp_names_notmatched:
-                self.wikicfp_names_notmatched.remove(wikicfp_name)
+        most_recent = max(repeating_conf, key=operator.itemgetter(1))[0]  
+                
+        for conf_name in [elem[0] for elem in repeating_conf]:
+            if conf_name in self.wikicfp_names_notmatched:
+                self.wikicfp_names_notmatched.remove(conf_name)
             
         return most_recent  
         
@@ -269,7 +300,7 @@ class WikiCFPLinker():
                 len(self.correspondences), len(self.scigraph_series), percentage_matched))
         
     ##########################################
-    def _remove_stopwords(self, string):
+    def _preprocess_string(self, string):
         """
         Removes stopwords from a given string.
         
@@ -279,7 +310,10 @@ class WikiCFPLinker():
         Returns:
             string: The string without stopwords.
         """
-        string = ' '.join([word for word in string.split() if word not in self.stopwords])
+        string = string.lower()
+        if self.remove_stopwords:
+            string = ' '.join([word for word in string.split() if word not in self.stopwords])
+        
         return string
 
     ##########################################
@@ -310,7 +344,8 @@ class WikiCFPLinker():
             boolean: True, if the similarity is above a given thereshold, 
             false otherwise.
         """
-        similarity = lv.ratio(string1, string2)
+        distance = jf.levenshtein_distance(string1, string2)
+        similarity = 1-distance/max(len(string1), len(string2))
         return similarity
     
     ##########################################
@@ -343,7 +378,7 @@ class WikiCFPLinker():
             boolean: True, if the similarity is above a given thereshold, 
             false otherwise.
         """
-        similarity = lv.jaro(string1, string2)
+        similarity = jf.jaro_distance(string1, string2)
         return similarity
 
     ##########################################
@@ -388,6 +423,19 @@ class WikiCFPLinker():
         return scigraph_series
     
     ##########################################
+    def _load_wikicfp_conferences(self):
+        """
+        Loads the WikiCFP conferences names and start dates.
+        
+        Returns:
+            dataFrame: The WikiCFP conferences names and start dates.
+        """
+        self.crawler._load_conferences()
+        wikicfp_conf = self.crawler.all_conferences[["Name", "Start Date"]].drop_duplicates()
+        
+        return wikicfp_conf
+    
+    ##########################################
     def _load_wikicfp_series(self):
         """
         Loads the WikiCFP conference series.
@@ -396,11 +444,11 @@ class WikiCFPLinker():
             dataFrame: The WikiCFP conference series.
         """
         self.crawler._load_conferences()
-        wikicfp_conf = self.crawler.all_conferences[
+        wikicfp_series = self.crawler.all_conferences[
                 ~pd.isnull(self.crawler.all_conferences["Conference Series"])
-                ][["Conference", "Name", "Conference Series", "Start Date"]]
+                ]["Conference Series"].drop_duplicates()
         
-        return wikicfp_conf
+        return wikicfp_series
     
     ##########################################
     def _save_correspondences(self):
