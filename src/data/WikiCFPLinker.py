@@ -139,16 +139,10 @@ class WikiCFPLinker():
             if (i%checkpoint)==0:
                 print("Linking: {}%".format(int(i/count*100)))
             
-            if len(self.scigraph_notmatched)==0:
-                break
-            
             if series_name in self.scigraph_notmatched:
                 processed_scigraph_series = self._preprocess_string(series_name)
                 
                 for wikicfp_series in self.wikicfp_series:  
-                    if len(self.wikicfp_series)==0:
-                        break
-                    
                     if wikicfp_series in self.wikicfp_notmatched:                
                         processed_wikicfp_series = self._preprocess_string(wikicfp_series)
                          
@@ -163,6 +157,10 @@ class WikiCFPLinker():
                         
                 if series_name in checked:
                     self.scigraph_notmatched.remove(series_name)  
+            
+            if len(self.scigraph_notmatched)==0:
+                break
+            
             i += 1
             
         print("Equal matching computed.")   
@@ -184,16 +182,10 @@ class WikiCFPLinker():
             if (i%checkpoint)==0:
                 print("Linking: {}%".format(int(i/count*100)))
             
-            if len(self.scigraph_notmatched)==0:
-                break
-            
             if series_name in self.scigraph_notmatched:
                 processed_scigraph_series = self._preprocess_string(series_name)
                 
                 for wikicfp_series in self.wikicfp_series:
-                    if len(self.wikicfp_series)==0:
-                        break
-                    
                     if wikicfp_series in self.wikicfp_notmatched:
                         processed_wikicfp_series = self._preprocess_string(wikicfp_series)
                         similarity = self.similarity_measure(processed_scigraph_series, processed_wikicfp_series)
@@ -208,7 +200,12 @@ class WikiCFPLinker():
                         
                 if series_name in checked:
                     self.scigraph_notmatched.remove(series_name)  
+            
+            if len(self.scigraph_notmatched)==0:
+                break
+            
             i += 1
+            
         print("Series-to-series similarities computed.")   
         
     ##########################################
@@ -230,16 +227,10 @@ class WikiCFPLinker():
             if (i%checkpoint)==0:
                 print("Linking: {}%".format(int(i/count*100)))
             
-            if len(self.scigraph_notmatched)==0:
-                break
-            
             if series_name in self.scigraph_notmatched:
                 processed_scigraph_series = self._preprocess_string(series_name)
                 
                 for wikicfp_name in self.wikicfp_conf["Name"]:
-                    if len(self.wikicfp_names_notmatched)==0:
-                        break
-                    
                     if wikicfp_name in self.wikicfp_names_notmatched:
                         processed_wikicfp_name = self._preprocess_string(wikicfp_name)
                         similarity = self.similarity_measure(processed_scigraph_series, processed_wikicfp_name)
@@ -251,9 +242,13 @@ class WikiCFPLinker():
                             wikicfp_name = self._get_most_recent(wikicfp_name)
                             self.matches.append([sg_series, series_name, wikicfp_name, similarity])
                         checked.append(series_name)
-            
+                    
                 if series_name in checked:        
                     self.scigraph_notmatched.remove(series_name)         
+            
+            if len(self.scigraph_notmatched)==0:
+                break
+            
             i += 1
             
         print("Series-to-name similarities computed.")
@@ -353,7 +348,11 @@ class WikiCFPLinker():
             false otherwise.
         """
         distance = jf.levenshtein_distance(string1, string2)
-        similarity = 1-distance/max(len(string1), len(string2))
+        if len(string1)==0 and len(string2)==0:
+            similarity = 0
+        else:
+            similarity = 1-distance/max(len(string1), len(string2))
+        
         return similarity
     
     ##########################################
@@ -370,7 +369,11 @@ class WikiCFPLinker():
             false otherwise.
         """
         distance = jf.damerau_levenshtein_distance(string1, string2)
-        similarity = 1-distance/max(len(string1), len(string2))
+        if len(string1)==0 and len(string2)==0:
+            similarity = 0
+        else:
+            similarity = 1-distance/max(len(string1), len(string2))
+        
         return similarity
     
     ##########################################
