@@ -502,3 +502,18 @@ class DataLoader:
         truth = [conferences_truth,confidences_truth]
         
         return query_test, truth
+    
+    ######################################
+    # Get CSO keywords.
+    def cso_keywords(self):
+        keywords = self.parser.getData("cso")
+        
+        keywords_single = []
+        keywords_multiple = []
+        for phrase in keywords[2]:
+            if " " in phrase:
+                keywords_multiple.append(phrase)
+            else:
+                keywords_single.append(phrase)
+            
+        return keywords_single, keywords_multiple, keywords[0], keywords[1]

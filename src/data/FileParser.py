@@ -22,6 +22,7 @@ import pickle
 import os.path
 import re
 import time
+from urllib.parse import unquote
 
 ### shared attributes
 nt_name = "<http://scigraph.springernature.com/ontologies/core/name>"
@@ -55,6 +56,11 @@ nt_datestart = "<http://scigraph.springernature.com/ontologies/core/dateStart>"
 nt_year = "<http://scigraph.springernature.com/ontologies/core/year>"
 nt_has_conference_series = "<http://scigraph.springernature.com/ontologies/core/hasConferenceSeries>"
 
+## computer science ontology
+cso_eq = "<http://kmi.open.ac.uk/projects/rexplore/ontologies/BiboExtension#relatedEquivalent>"
+cso_parent = "<http://www.w3.org/2004/02/skos/core#broaderGeneric>"
+cso_label = "<http://kmi.open.ac.uk/projects/rexplore/ontologies/BiboExtension#primaryLabel>"
+
 class FileParser:
     regex = '([<"].*?[>"])+?'
     
@@ -85,6 +91,15 @@ class FileParser:
         self.persistent = {}
         
         self.processes = {
+            # computer science ontology
+            "cso":{
+                    "filename":os.path.join(os.path.dirname(os.path.realpath(__file__)),"..","..","data","external","ComputerScienceOntology.nt"),
+                    "processLine":"processLineCSO",
+                    "persistentFile":os.path.join(os.path.dirname(os.path.realpath(__file__)),"..","..","data","external","ComputerScienceOntology.pkl"),
+                    "encoding":"utf8",
+                    "persistentVariable":[{},{},{}]
+            },
+            # glove
             "glove.6d50":{
                     "filename":os.path.join(os.path.dirname(os.path.realpath(__file__)),"..","..","data","external","glove.6B.50d.txt"),
                     "processLine":"processLineGlove",
@@ -622,6 +637,26 @@ class FileParser:
         line = line.strip("\n").split(" ")
         key = line.pop(0)
         v[key] = [float(i) for i in line]
+        
+    """
+        Parse the computer science ontology into a dict.
+    """
+    def processLineCSO(self,line,v,parameters):
+        line = line.split(" ")
+        l0 = self._remove_prefix(line[0])
+        l2 = self._remove_prefix(line[2])
+        v[2][l0] = 1
+        if line[1] == cso_parent:
+            try:
+                v[0][l2].append(l0)
+            except KeyError:
+                v[0][l2] = [l0]
+        elif line[1] == cso_label:
+            v[1][l0] = l2
+            
+    def _remove_prefix(self,s):
+        return unquote(s.replace("<http://cso.kmi.open.ac.uk/topics/","")\
+                .replace(">",""))
 
     
     
@@ -755,3 +790,5 @@ years = [
 #   parser.getData("chapters_" + y + "#abstract")
 
 #parser.getData("marketcodes#name")
+
+#cso = parser.getData("cso")
