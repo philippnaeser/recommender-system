@@ -20,7 +20,7 @@ class WikiCFPLinker():
     ##########################################
     def __init__(self, remove_stopwords = True, 
                  similarity_metric = "damerau_levenshtein", 
-                 match_threshold = 0.9, 
+                 match_threshold = 0.885, 
                  data_name = "small"):
         
         self.crawler = WikiCFPCrawler()

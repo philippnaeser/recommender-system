@@ -10,9 +10,9 @@ REMOVE_STOPWORDS = True
 
 ##One of {"levenshtein", "damerau_levenshtein", "jaro", "jaro_winkler"}.
 SIMILARITY_METRIC = "damerau_levenshtein"
-MATCH_THRESHOLD = 0.9
+MATCH_THRESHOLD = 0.885
 
-DATA_NAME = "small"
+DATA_NAME = "large"
 #################################
 
 
