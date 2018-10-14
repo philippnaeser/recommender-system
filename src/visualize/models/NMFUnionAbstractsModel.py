@@ -143,9 +143,9 @@ class NMFUnionAbstractsModel(AbstractModel):
             # Generate stem matrix.
             self.stem_matrix = self.stem_vectorizer.fit_transform(self.data.chapter_abstract)
             self._save_model_x(data_name)
-        else:
-            if len(self.data) != len(data):
-                raise ValueError("Mismatch vs. persistent training data size: Loaded: {} <-> Given: {}".format(len(self.data),len(data)))
+        #else:
+            #if len(self.data) != len(data):
+            #    raise ValueError("Mismatch vs. persistent training data size: Loaded: {} <-> Given: {}".format(len(self.data),len(data)))
                      
         if not self._load_model_lr(data_name):
             print("NMF not persistent yet. Creating now.")
