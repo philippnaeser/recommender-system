@@ -100,3 +100,6 @@ ENV/
 # mypy
 .mypy_cache/
 *.nt
+
+#visualize
+/src/visualize/data/*/
