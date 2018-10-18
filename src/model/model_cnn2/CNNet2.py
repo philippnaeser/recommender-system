@@ -36,6 +36,7 @@ class CNNet2(AbstractNet):
                 filters=meta["filters"]
         )
         net.load_state(optimizer,epoch)
+        net.meta = meta
         
         return net
     
@@ -70,9 +71,11 @@ class CNNet2(AbstractNet):
                 stride=1
         )
         
-        self.fc1 = nn.Linear(3*filters,self.num_classes)
+        self.fc1 = nn.Linear(3*filters,1024)
+        self.fc2 = nn.Linear(1024,self.num_classes)
         
-        self.dropout = nn.Dropout(p=0.5)
+        self.dropout1 = nn.Dropout(p=0.5)
+        self.dropout2 = nn.Dropout(p=0.5)
         
         #self.softmax = nn.LogSoftmax(dim=1)
         
@@ -94,9 +97,14 @@ class CNNet2(AbstractNet):
         
         x = torch.cat((x1,x2,x3),dim=1)
         
-        x = self.dropout(x)
+        x = self.dropout1(x)
         
         x = self.fc1(x.view(x.size()[0],-1))
+        x = F.relu(x)
+        
+        x = self.dropout2(x)
+        
+        x = self.fc2(x)
         
         return x#self.softmax(x)
     
