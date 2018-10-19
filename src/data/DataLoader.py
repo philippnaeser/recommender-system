@@ -468,6 +468,45 @@ class DataLoader:
         return self
     
     ######################################
+    # Get training data for combined abstracts+keywords models.
+    def test_data_for_abstracts_and_keywords(self,which="small"):
+        self.test_data(which).keywords()
+        
+        # Preprocess keywords.
+        
+        self.data.keyword = self.data.keyword.str.replace("<http://scigraph.springernature.com/things/product-market-codes/","")
+        self.data.keyword = self.data.keyword.str[0:-1]
+        
+        self.data = self.data[["chapter","keyword","conferenceseries"]].copy()
+        self.data.drop(
+            list(self.data[pd.isnull(self.data.keyword)].index),
+            inplace=True
+        )
+        
+        conferenceseries = self.data[["chapter","conferenceseries"]].drop_duplicates()
+        self.data.keyword = self.data.keyword + " "
+        self.data = pd.merge(
+                self.data.groupby("chapter").sum().reset_index()[["chapter","keyword"]],
+                conferenceseries,
+                how="outer",
+                on="chapter"
+        )
+        
+        # Preprocess abstracts.
+        
+        self.abstracts()
+        self.data.drop(
+            list(self.data[pd.isnull(self.data.chapter_abstract)].index),
+            inplace=True
+        )
+        self.data.chapter_abstract = self.data.chapter_abstract.str.decode("unicode_escape")
+        
+        self.data = self.data.reset_index()
+        self.data = self.data[["chapter","chapter_abstract","keyword","conferenceseries"]]
+        
+        return self
+    
+    ######################################
     # Get test data ready to use for evaluation.
     def evaluation_data_for_abstracts(self,which="small"):
         self.test_data_for_abstracts(which)
@@ -502,6 +541,25 @@ class DataLoader:
         truth = [conferences_truth,confidences_truth]
         
         return query_test, truth
+    
+    ######################################
+    # Get test data ready to use for evaluation.
+    def evaluation_data_for_abstracts_and_keywords(self,which="small"):
+        self.test_data_for_abstracts_and_keywords(which)
+        
+        query_test_keywords = list(self.data.keyword)
+        query_test_abstract = list(self.data.chapter_abstract)
+    
+        conferences_truth = list()
+        confidences_truth = list()
+        
+        for conference in list(self.data.conferenceseries):
+            conferences_truth.append([conference])
+            confidences_truth.append([1])
+            
+        truth = [conferences_truth,confidences_truth]
+        
+        return query_test_abstract, query_test_keywords, truth
     
     ######################################
     # Get CSO keywords.

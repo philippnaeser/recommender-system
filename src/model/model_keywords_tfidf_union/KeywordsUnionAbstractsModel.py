@@ -89,7 +89,7 @@ class KeywordsUnionAbstractsModel(AbstractModel):
             conference = list()
             confidence = list()
             i = 0
-            while len(conference) < self.recs:
+            while (len(conference) < self.recs) and (i < len(data_conf)):
                 c = data_conf[i]
                 if c not in conference:
                     conference.append(c)
