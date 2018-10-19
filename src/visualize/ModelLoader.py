@@ -85,6 +85,11 @@ class ModelLoader():
         #    pickle.dump(self.data, f)
         with open(file,"rb") as f:
                 self.data = pickle.load(f)
+        #Load the wikicfp dictionary
+        file = os.path.join(".", "data", "WikiCFP_data.pkl")
+        with open(file,"rb") as f:
+                self.wikicfp = pickle.load(f)   
+        print("Number of keys in wikicfp dictionary: ", len(self.wikicfp))
         print("Model Loader ready, models available:")
         print(self.models)
 
@@ -125,30 +130,35 @@ class ModelLoader():
             return self.model_authors.get_author_names(term=data)
         if modelName == "Tags":
             return self.model_tags.get_tag_names(term=data)
-        
+    
+    #Here we not only get the names, but also the additional info if available    
     def getSeriesNames(self, recommendation):
-        print(recommendation)
+        #print(recommendation)
         conferenceseries = list()
         confidence = list()
+        additional = list()
         for i,conf in enumerate(recommendation[0][0]):
             conferenceseries.append(self.data[self.data.conferenceseries==conf].iloc[0]["conferenceseries_name"])
             confidence.append(recommendation[1][0][i])
-        return [conferenceseries, confidence]
+            additional.append(self.addWikiCFP(conf))
+        return [conferenceseries, confidence, additional]
 
     def addDummyConfidence(self, recommendation):
         conferenceseries = recommendation[0]
         confidence = list()
+        additional = list()
         #Only for Author model, since it only responds with conferenceseries, no confidence
         for i in range(len (conferenceseries)):
             confidence.append(" ")
-        return self.addDummyWikiCFP([conferenceseries, confidence])
+            additional.append(None)
+        return [conferenceseries, confidence, additional]
     
-    def addDummyWikiCFP(self, recommendation):
+    def addWikiCFP(self, conferenceseries):
         #Note: this is test only, delete after
-        conferenceseries = recommendation[0]
-        confidence = recommendation[1]
-        wikicfp = list()
-        
-        for i in range(len(conferenceseries)):
-            wikicfp.append("10/10/2010")
-        return [conferenceseries, confidence, wikicfp]
+        if conferenceseries in self.wikicfp:
+            additional = self.wikicfp[conferenceseries]
+            # Cut the description (did not work directly in a template)
+            additional['Description'] = additional['Description'][:400]
+            return additional
+        else: 
+            return None
