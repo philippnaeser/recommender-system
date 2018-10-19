@@ -132,11 +132,21 @@ class CNNet(AbstractNet):
     
     ##################################################
     def load_state(self,optimizer=None,epoch=None):
-        self.model_state = torch.load(os.path.join(
-                AbstractNet.path_persistent,
-                self.net_name,
-                AbstractNet.filename + ("" if epoch is None else ".e"+str(epoch))
-        ))
+        if torch.cuda.is_available():
+            self.model_state = torch.load(os.path.join(
+                    AbstractNet.path_persistent,
+                    self.net_name,
+                    AbstractNet.filename + ("" if epoch is None else ".e"+str(epoch))
+            ))
+        else:
+            self.model_state = torch.load(
+                os.path.join(
+                        AbstractNet.path_persistent,
+                        self.net_name,
+                        AbstractNet.filename + ("" if epoch is None else ".e"+str(epoch))
+                ),
+                map_location="cpu"
+            )
         
         self.load_state_dict(self.model_state["model"])
         if optimizer is not None:
