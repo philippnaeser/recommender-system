@@ -85,10 +85,10 @@ class TfIdfUnionAbstractsModel(AbstractModel):
         #self.count_init(len(batch))
         
         q_v = (self.stem_vectorizer.transform(batch))
-        print("Abstracts transformed.")
-        print("Dimensionality of batch: {}".format(q_v.shape))
+        #print("Abstracts transformed.")
+        #print("Dimensionality of batch: {}".format(q_v.shape))
         sim = cosine_similarity(q_v,self.stem_matrix)
-        print("Cosine similarity computed.")
+        #print("Cosine similarity computed.")
         o = np.argsort(-np.array(sim))
         index = 0
         

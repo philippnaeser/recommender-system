@@ -417,6 +417,44 @@ class DataLoader:
         self.data = self.data[["chapter","keyword","conferenceseries"]]
         
         return self
+    
+    ######################################
+    # Get training data for combined models.
+    def training_data_for_abstracts_and_keywords(self,which="small"):
+        self.training_data(which).keywords()
+        
+        # Preprocess keywords.
+        
+        self.data.keyword = self.data.keyword.str.replace("<http://scigraph.springernature.com/things/product-market-codes/","")
+        self.data.keyword = self.data.keyword.str[0:-1]
+        
+        self.data = self.data[["chapter","keyword","conferenceseries"]].copy()
+        self.data.drop(
+            list(self.data[pd.isnull(self.data.keyword)].index),
+            inplace=True
+        )
+        
+        conferenceseries = self.data[["chapter","conferenceseries"]].drop_duplicates()
+        self.data.keyword = self.data.keyword + " "
+        self.data = pd.merge(
+                self.data.groupby("chapter").sum().reset_index()[["chapter","keyword"]],
+                conferenceseries,
+                how="outer",
+                on="chapter"
+        )
+        
+        # Preprocess abstracts.
+        
+        self.abstracts()
+        self.data.drop(
+            list(self.data[pd.isnull(self.data.chapter_abstract)].index),
+            inplace=True
+        )
+        self.data.chapter_abstract = self.data.chapter_abstract.str.decode("unicode_escape")
+        self.data = self.data.reset_index()
+        self.data = self.data[["chapter","keyword","chapter_abstract","conferenceseries"]]
+        
+        return self
         
     ######################################
     # Get test data.
