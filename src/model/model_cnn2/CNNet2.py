@@ -11,9 +11,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "neuralnets"))
 from AbstractNet import AbstractNet
 sys.path.insert(0, os.path.join(
-        os.path.realpath(__file__),"..","..","neuralnets")
+        os.path.dirname(__file__),"..","..","data")
 )
 from EmbeddingsParser import EmbeddingsParser
 

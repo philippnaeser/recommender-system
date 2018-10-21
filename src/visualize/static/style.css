@@ -6,7 +6,7 @@ body {
 .input {
   font-size: 16;
   width: 100%;
-  min-width: 220px;
+  min-width: 250px;
 }
 
 .input-div {
@@ -48,7 +48,7 @@ body {
   border-collapse:collapse;
   border-spacing:0;
   border-color:#ccc;
-  min-width: 220px;
+  min-width: 250px;
   width: 50%;
 }
 

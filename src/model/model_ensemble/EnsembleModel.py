@@ -13,13 +13,14 @@ import torch
 class EnsembleModel(AbstractModel):
     
     ##########################################
-    def __init__(self,models,is_abstract,apply_softmax,recs=10):
+    def __init__(self,models,is_abstract,apply_softmax,model_weight,recs=10):
         # number of recommendations to return
         self.recs = recs
         self.models = models
         self.sm = Softmax(dim=1)
         self.apply_softmax = apply_softmax
         self.is_abstract = is_abstract
+        self.model_weight = model_weight
         
         """
         description = "-".join([
@@ -91,9 +92,9 @@ class EnsembleModel(AbstractModel):
                 conf = conferences[0][order[0]]
             
             if scores_combined is None:
-                scores_combined = scores[np.arange(np.shape(scores)[0])[:,np.newaxis], order]
+                scores_combined = scores[np.arange(np.shape(scores)[0])[:,np.newaxis], order] * self.model_weight[i]
             else:
-                scores_combined += scores[np.arange(np.shape(scores)[0])[:,np.newaxis], order]
+                scores_combined += scores[np.arange(np.shape(scores)[0])[:,np.newaxis], order] * self.model_weight[i]
             
         conferences = list()
         confidences = list()

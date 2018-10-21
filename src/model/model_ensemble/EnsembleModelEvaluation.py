@@ -56,9 +56,26 @@ model_keywords = KeywordsUnionAbstractsModel(
 model_keywords._load_model(TRAINING_DATA)
 
 model = EnsembleModel(
-        models=[model_tfidf,model_cnn,model_keywords],
-        apply_softmax=[True,False,True],
-        is_abstract=[True,True,False]
+        models=[
+                model_tfidf
+                ,model_cnn
+                #,model_keywords
+        ],
+        apply_softmax=[
+                False
+                ,False
+                #,True
+        ],
+        is_abstract=[
+                True
+                ,True
+                #,False
+        ],
+        model_weight=[
+                1
+                ,1
+                #,1
+        ]
 )
 
 # Main script.

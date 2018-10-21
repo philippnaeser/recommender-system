@@ -8,6 +8,7 @@ Created on Tue May  1 14:39:50 2018
 ###### Script parameters #######
 
 MAX_RECS = 10
+MAX_RECS_MODELS = 500
 
 TRAINING_DATA = "small"
 TRAINING_DATA_CONCAT = True
@@ -43,15 +44,15 @@ model_tfidf = TfIdfUnionAbstractsModel(
         max_df=1.0,
         ngram_range=(1,4),
         max_features=1000000,
-        recs=10
+        recs=MAX_RECS_MODELS
 )
 model_tfidf._load_model(TRAINING_DATA)
 
-model_cnn = CNNAbstractsModel("CNN2-100f-2fc-0.0005decay",recs=10)
+model_cnn = CNNAbstractsModel("CNN2-100f-2fc-0.0005decay",recs=MAX_RECS_MODELS)
 
 model_keywords = KeywordsUnionAbstractsModel(
         concat=False,
-        recs=10
+        recs=MAX_RECS_MODELS
 )
 model_keywords._load_model(TRAINING_DATA)
 
@@ -59,13 +60,14 @@ model = EnsembleStackModel(
             models=[
                     model_tfidf
                     ,model_cnn
-                    #,model_keywords
+                    ,model_keywords
             ],
             is_abstract=[
                     True
                     ,True
-                    #,False
-            ]
+                    ,False
+            ],
+            max_recs_models=MAX_RECS_MODELS
 )
 
 # Main script.
@@ -82,8 +84,8 @@ if not model._has_persistent_model(TRAINING_DATA):
     d_train = DataLoader()
     d_train.training_data_for_abstracts_and_keywords(TRAINING_DATA)
     model.train(d_train.data,TRAINING_DATA)
-    
-"""
+else:
+    model._load_model("small")
     
 # Generate test query and truth values.
 
@@ -119,4 +121,3 @@ evaluation = EvaluationContainer()
 evaluation.evaluate(recommendation,truth)
 
 print("#Recs: {}".format(len(recommendation[0])))
-"""

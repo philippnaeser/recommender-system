@@ -12,13 +12,18 @@ import numpy as np
 import torch
 
 from sklearn.linear_model import LogisticRegression
+from sklearn.naive_bayes import GaussianNB
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.neural_network import MLPClassifier
+from TimerCounter import Timer
 
 class EnsembleStackModel(AbstractModel):
     
     ##########################################
-    def __init__(self,models,is_abstract,recs=10):
+    def __init__(self,models,is_abstract,max_recs_models=10,recs=10):
         # number of recommendations to return
         self.recs = recs
+        self.max_recs_models = max_recs_models
         self.models = models
         #self.sm = Softmax(dim=1)
         self.is_abstract = is_abstract
@@ -71,46 +76,31 @@ class EnsembleStackModel(AbstractModel):
                 str[]: name of the conference
                 double[]: confidence scores
         """
-        conf = None
-        scores_combined = None
-        for i, m in enumerate(self.models):
-            #recs.append(self._rec2dic(m.query_batch(batch)))
-            if self.is_abstract[i]:
-                results = m.query_batch(batch_abstract)
-                batch_len = len(batch_abstract)
+        vectors = np.zeros((len(batch_abstract),self.len_vec))
+        row_len = len(batch_abstract)
+        self.row_indices = np.repeat(np.arange(row_len),self.max_recs_models).reshape((row_len,self.max_recs_models))
+        
+        for i_m, m in enumerate(self.models):
+            if self.is_abstract[i_m]:
+                rec = m.query_batch(batch_abstract)
             else:
-                results = m.query_batch(batch_keywords)
-                batch_len = len(batch_keywords)
-            conferences = np.array(results[0],dtype=str)
-            if self.apply_softmax[i]:
-                scores = torch.tensor(results[1])
-                scores = self.sm(scores).numpy()
-                #scores = np.array(results[1],dtype=np.float64)
-            else:
-                scores = np.array(results[1],dtype=np.float64)
-            order = np.argsort(conferences)[0:batch_len,0:743]
-            #print(order.shape)
-            #print(conferences.shape)
-            
-            if conf is None:
-                conf = conferences[0][order[0]]
-            
-            if scores_combined is None:
-                scores_combined = scores[np.arange(np.shape(scores)[0])[:,np.newaxis], order]
-            else:
-                scores_combined += scores[np.arange(np.shape(scores)[0])[:,np.newaxis], order]
-            
+                rec = m.query_batch(batch_keywords)
+                
+            v = self._recs2vec(rec)
+            vectors[:,i_m*self.len_truth:(i_m+1)*self.len_truth] = v
+        
+        predicts = self.classifier.predict_proba(vectors)
+        o = np.argsort(-np.array(predicts))
+        #print(o[:][0:self.recs])
+        
         conferences = list()
         confidences = list()
-        
-        o = np.argsort(-scores_combined)
-        
         for index, order in enumerate(o):
             conferences.append(
-                    list(conf[order][0:self.recs])
+                    self.truth[order[0:self.recs]]
             )
             confidences.append(
-                    list(scores_combined[index][order][0:self.recs])
+                    predicts[index][order][0:self.recs]
             )
             
             
@@ -173,33 +163,42 @@ class EnsembleStackModel(AbstractModel):
     
                 self.vectors = np.zeros((len(data),self.len_vec))
                 
+                timer = Timer()
+                
+                row_len = 0
                 for i_m, m in enumerate(self.models):
                     row = 0
+                    timer.set_counter(len(data))
                     for i_b in range(len(minibatches_abstract)):
                         if self.is_abstract[i_m]:
-                            row_len = len(minibatches_abstract[i_b])
+                            if row_len != len(minibatches_abstract[i_b]):
+                                row_len = len(minibatches_abstract[i_b])
+                                self.row_indices = np.repeat(np.arange(row_len),self.max_recs_models).reshape((row_len,self.max_recs_models))
                             rec = m.query_batch(minibatches_abstract[i_b].tolist())
                         else:
-                            row_len = len(minibatches_keywords[i_b])
+                            if row_len != len(minibatches_keywords[i_b]):
+                                row_len = len(minibatches_keywords[i_b])
+                                self.row_indices = np.repeat(np.arange(row_len),self.max_recs_models).reshape((row_len,self.max_recs_models))
                             rec = m.query_batch(minibatches_keywords[i_b].tolist())
                         
                         v = self._recs2vec(rec)
                         self.vectors[row:(row+row_len),i_m*self.len_truth:(i_m+1)*self.len_truth] = v
                         row += row_len
+                        timer.count(row_len)
                         
                 with open("train","wb") as f:
                     pickle.dump(self.vectors, f)
                     
             print("Training classifier.")
-            self.classifier = LogisticRegression()
-            self.classifier.fit(self.vectors,data.conferenceseries,verbose=1)
+            self.classifier = LogisticRegression()#(verbose=1)
+            self.classifier.fit(self.vectors,data.conferenceseries)
                     
     ##########################################
     def _recs2vec(self,rec):
         vec = np.zeros((len(rec[0]),self.len_truth))
         
         indices = self.truth.searchsorted(rec[0])
-        vec[:,indices] = rec[1]
+        vec[self.row_indices,indices] = rec[1]
             
         return vec
             
@@ -211,7 +210,7 @@ class EnsembleStackModel(AbstractModel):
     def _save_model(self,data_name):
         file = self._file(data_name)
         with open(file,"wb") as f:
-            pickle.dump([self.truth, self.len_truth, self.len_vec, self.vectors, self.classifier], f)
+            pickle.dump([self.truth, self.len_truth, self.len_vec, self.vectors, self.classifier, self.max_recs_models], f)
     
     ##########################################
     def _load_model(self,data_name):
@@ -219,7 +218,7 @@ class EnsembleStackModel(AbstractModel):
         if os.path.isfile(file):
             with open(file,"rb") as f:
                 print("Loading persistent model.")
-                self.stem_matrix, self.stem_vectorizer, self.data = pickle.load(f)
+                self.truth, self.len_truth, self.len_vec, self.vectors, self.classifier, self.max_recs_models = pickle.load(f)
                 print("... loaded.")
                 return True
         

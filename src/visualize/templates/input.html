@@ -81,6 +81,14 @@
   </head>
   <body>
     <div class="input-div">
+      {% if modelType == "Ensemble" %}
+        <input class="input" multiple placeholder="Tags" id="auto"/>
+        <textarea class="input" id="abstract" rows="4" placeholder="Please insert your abstract here"/>
+        <div class="button-div">
+          <button class="button-style" type="button" id="recommend-ensemble">Recommend</button>
+          <button class="button-style" type="button" id="clear">Clear</button>
+        </div>
+      {% endif %}
       {% if modelType =="Abstracts" %}
         <textarea class="input" id="abstract" rows="4" placeholder="Please insert your abstract here"/>
         <div class="button-div">

@@ -2,19 +2,21 @@
 import sys
 import os
 import pickle
+import pandas as pd
 
-#sys.path.insert(0, os.path.join(".","..","data"))
-#from DataLoader import DataLoader
-sys.path.insert(0, os.path.join(".","models"))
+sys.path.insert(0, os.path.join(".","..","data"))
+from DataLoader import DataLoader
+sys.path.insert(0, os.path.join("..","model"))
+sys.path.insert(0, os.path.join("..", "model", "model_authors_union"))
 from BaselineModel import BaselineModel
-from TagModel import TagModel
-from TfIdfMaxAbstractsModel import TfIdfMaxAbstractsModel
+sys.path.insert(0, os.path.join("..", "model", "model_tfidf_union"))
 from TfIdfUnionAbstractsModel import TfIdfUnionAbstractsModel
-#from TFIDFClassifierAbstractsModel import TFIDFClassifierAbstractsModel
-#from sklearn.naive_bayes import MultinomialNB
-from NMFAbstractsModel import NMFAbstractsModel
-from NMFMaxAbstractsModel import NMFMaxAbstractsModel
-from NMFUnionAbstractsModel import NMFUnionAbstractsModel
+sys.path.insert(0, os.path.join("..", "model", "model_doc2vec_union"))
+from Doc2VecUnionAbstractsModel import Doc2VecUnionAbstractsModel
+sys.path.insert(0, os.path.join("..", "model", "model_keywords_tfidf_union"))
+from KeywordsUnionAbstractsModel import KeywordsUnionAbstractsModel
+sys.path.insert(0, os.path.join("..", "model", "model_cnn2"))
+from CNNAbstractsModel import CNNAbstractsModel
 
 
 class ModelLoader():
@@ -35,19 +37,9 @@ class ModelLoader():
         self.model_authors = BaselineModel()
         self.model_authors.train(self.data_authors)
         self.models.append("Authors")
-        #d = DataLoader()
-        #d.papers(["2013","2014","2015"]).conferences().conferenceseries().keywords()
-        #self.data_tags = d.data.loc[:, ["conferenceseries", "keyword_label"]].copy()
-        #self.data_tags.columns = ["conferenceseries", "tag_name"]
-        file = os.path.join(".", "data", "data_tags.pkl")
-        #with open(file,"wb") as f:
-        #    pickle.dump(self.data_tags, f)
-        with open(file,"rb") as f:
-            self.data_tags = pickle.load(f)
-        #del d
-        self.model_tags = TagModel()
-        self.model_tags.train(self.data_tags)
-        self.models.append("Tags")
+        d = DataLoader()
+        d.papers(["2013","2014","2015"]).conferences().conferenceseries().keywords()
+        self.data_tags = d.data.loc[:, ["keyword", "keyword_label"]]
         #d = DataLoader()
         #d.training_data_for_abstracts("small")
         #self.data_abstracts = d.data.copy()
@@ -57,25 +49,17 @@ class ModelLoader():
         with open(file,"rb") as f:
                 self.data_abstracts = pickle.load(f)
         #del d
-        self.model_tfidf_max = TfIdfMaxAbstractsModel()
-        self.model_tfidf_max.train(data=self.data_abstracts, data_name="small")
-        self.models.append("TfIdf_Max")
-        self.model_tfidf_union = TfIdfUnionAbstractsModel()
+        self.model_tfidf_union = TfIdfUnionAbstractsModel(ngram_range=(1,4), max_features=1000000)
         self.model_tfidf_union.train(data=self.data_abstracts, data_name="small")
-        self.models.append("TfIdf_Union")
-        #classifier=MultinomialNB()
-        #self.model_tfidf_classifier = TFIDFClassifierAbstractsModel(classifier=classifier)
-        #self.model_tfidf_classifier.train(data=self.data_abstracts, data_name="small")
-        #self.models.append("TfIdf_Classifier")
-        self.model_nmf = NMFAbstractsModel()
-        self.model_nmf.train(data=self.data_abstracts, data_name="small")
-        self.models.append("NMF_Abstracts")
-        self.model_nmf_max = NMFMaxAbstractsModel()
-        self.model_nmf_max.train(data=self.data_abstracts, data_name="small")
-        self.models.append("NMF_Abstracts_Max")
-        self.model_nmf_union = NMFUnionAbstractsModel()
-        self.model_nmf_union.train(data=self.data_abstracts, data_name="small")
-        self.models.append("NMF_Abstracts_Union")
+        self.models.append("nTfIdf_concat")
+        self.model_doc2vec = Doc2VecUnionAbstractsModel(embedding_model="d2v_100d_w5_NS")
+        self.model_doc2vec.train(data=self.data_abstracts, data_name="small")
+        self.models.append("Doc2Vec")
+        self.model_cnn = CNNAbstractsModel(net_name="CNN2-100f-2fc-0.0005decay")
+        self.models.append("CNN")
+        self.model_keyword = KeywordsUnionAbstractsModel()
+        self.model_keyword._load_model("small")
+        self.models.append("Keywords_TfIdf")
         #We need to get series names, not scigraph links
         #d = DataLoader()
         #d.papers(["2013","2014","2015"]).conferences().conferenceseries()
@@ -101,26 +85,17 @@ class ModelLoader():
         if modelName=="Authors":
             rec = self.model_authors.query_single(data)
             return self.addDummyConfidence(rec)
-        if modelName=="Tags":  
-            rec = self.model_tags.query_batch(data)
-            return self.getSeriesNames(rec)
-        if modelName=="TfIdf_Max":
-            rec = self.model_tfidf_max.query_single(data)
-            return self.getSeriesNames(rec)
-        if modelName=="TfIdf_Union":
+        if modelName=="nTfIdf_concat":
             rec = self.model_tfidf_union.query_single(data)
             return self.getSeriesNames(rec)
-        #if modelName=="TfIdf_Classifier":
-            #rec = self.model_tfidf_classifier.query_single(data)
-            #return self.getSeriesNames(rec)
-        if modelName=="NMF_Abstracts":
-            rec = self.model_nmf.query_single(data)
+        if modelName=="Doc2Vec":
+            rec = self.model_doc2vec.query_batch(data)
             return self.getSeriesNames(rec)
-        if modelName=="NMF_Abstracts_Max":
-            rec = self.model_nmf_max.query_single(data)
+        if modelName=="CNN":
+            rec = self.model_cnn.query_single(data)
             return self.getSeriesNames(rec)
-        if modelName=="NMF_Abstracts_Union":
-            rec = self.model_nmf_union.query_single(data)
+        if modelName=="Keywords_TfIdf":
+            rec = self.model_keyword.query_single(self.getKeywordIDs(data))
             return self.getSeriesNames(rec)
         print("Model not found, please select a different model")
         return False
@@ -128,8 +103,12 @@ class ModelLoader():
     def autocomplete(self, modelName, data):
         if modelName == "Authors":
             return self.model_authors.get_author_names(term=data)
-        if modelName == "Tags":
-            return self.model_tags.get_tag_names(term=data)
+        if modelName == "Keywords_TfIdf":
+            tags = pd.Series(self.data_tags["keyword_label"].unique())
+        
+            tags = tags[tags.str.lower().str.startswith(data.lower())][:10]
+        
+            return tags
     
     #Here we not only get the names, but also the additional info if available    
     def getSeriesNames(self, recommendation):
@@ -139,7 +118,7 @@ class ModelLoader():
         additional = list()
         for i,conf in enumerate(recommendation[0][0]):
             conferenceseries.append(self.data[self.data.conferenceseries==conf].iloc[0]["conferenceseries_name"])
-            confidence.append(recommendation[1][0][i])
+            confidence.append(round(recommendation[1][0][i], 2))
             additional.append(self.addWikiCFP(conf))
         return [conferenceseries, confidence, additional]
 
@@ -158,7 +137,19 @@ class ModelLoader():
         if conferenceseries in self.wikicfp:
             additional = self.wikicfp[conferenceseries]
             # Cut the description (did not work directly in a template)
-            additional['Description'] = additional['Description'][:400]
+            if additional['Description'] is not None:
+                additional['Description'] = additional['Description'][:400]
             return additional
         else: 
             return None
+        
+    def getKeywordIDs(self, data):
+        ids = ""
+        for d in data:
+            if d is not "":
+                tmp = self.data_tags[self.data_tags.keyword_label == d].iloc[0].keyword
+                tmp = tmp.replace("<http://scigraph.springernature.com/things/product-market-codes/","")
+                tmp = tmp[0:-1]
+                ids += tmp + " "
+        print(ids)
+        return ids
