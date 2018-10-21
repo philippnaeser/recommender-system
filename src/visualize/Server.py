@@ -47,7 +47,7 @@ def recommend_auto():
     print(query)
     recommendation = modelLoader.query(modelName, query)
     print(recommendation[0], recommendation[1])
-    return render_template("result.html", recommendation=recommendation, feedback_enabled=True)
+    return render_template("result.html", recommendation=recommendation, feedback_enabled=False)
 
 @app.route("/recommend_abstract")
 def recommend_abstract():
@@ -56,7 +56,7 @@ def recommend_abstract():
     print(data)
     recommendation = modelLoader.query(modelName, data)
     print(recommendation[0], recommendation[1])
-    return render_template("result.html", recommendation=recommendation, feedback_enabled=True)
+    return render_template("result.html", recommendation=recommendation, feedback_enabled=False)
 
 @app.route("/feedback")
 def feedback():

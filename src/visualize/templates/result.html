@@ -100,7 +100,7 @@
               <td class="tablerow">{{recommendation[0][loop.index-1]}}</td>
               <td class="tablerow">{{recommendation[1][loop.index-1]}}</td>
               {% if recommendation[2] != None %}
-                <td class="tablerow"><a href="{{recommendation[2][loop.index-1]['WikiCFP Link']}}" target="_blank" title="{{recommendation[2][loop.index-1]['Description']}}...">
+                <td class="tablerow" style="min-width: 75px;"><a href="{{recommendation[2][loop.index-1]['WikiCFP Link']}}" target="_blank" title="{{recommendation[2][loop.index-1]['Description']}}...">
                   {{recommendation[2][loop.index-1]['Start Date']}}</a></td>
               {% else %}
                 <td class="tablerow"></td>

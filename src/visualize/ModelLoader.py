@@ -139,7 +139,7 @@ class ModelLoader():
         additional = list()
         for i,conf in enumerate(recommendation[0][0]):
             conferenceseries.append(self.data[self.data.conferenceseries==conf].iloc[0]["conferenceseries_name"])
-            confidence.append(recommendation[1][0][i])
+            confidence.append(round(recommendation[1][0][i], 2))
             additional.append(self.addWikiCFP(conf))
         return [conferenceseries, confidence, additional]
 
@@ -158,7 +158,8 @@ class ModelLoader():
         if conferenceseries in self.wikicfp:
             additional = self.wikicfp[conferenceseries]
             # Cut the description (did not work directly in a template)
-            additional['Description'] = additional['Description'][:400]
+            if additional['Description'] is not None:
+                additional['Description'] = additional['Description'][:400]
             return additional
         else: 
             return None
