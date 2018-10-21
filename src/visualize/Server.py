@@ -35,6 +35,8 @@ def setModel():
         modelType = "Authors"
     elif modelName=="Keywords_TfIdf":
         modelType = "Tags"
+    elif modelName=="Ensemble":
+        modelType = "Ensemble"
     else:
         modelType = "Abstracts"
     return render_template("input.html", modelType=modelType)
@@ -55,6 +57,14 @@ def recommend_abstract():
     data = request.args.get("data")
     print(data)
     recommendation = modelLoader.query(modelName, data)
+    print(recommendation[0], recommendation[1])
+    return render_template("result.html", recommendation=recommendation, feedback_enabled=False)
+
+@app.route("/recommend_ensemble")
+def recommend_ensemble():
+    abstract = request.args.get("abstract")
+    keywords = request.args.get("keywords").split("; ")
+    recommendation = modelLoader.query_ensemble(abstract, keywords)
     print(recommendation[0], recommendation[1])
     return render_template("result.html", recommendation=recommendation, feedback_enabled=False)
 

@@ -33,7 +33,7 @@ class EnsembleStackModel(AbstractModel):
         #        "{}"
         #])
         
-        self.path = os.path.join("..","..","..","data","processed","model_ensemble_stack")
+        self.path = os.path.join(os.path.dirname(__file__), "..","..","..","data","processed","model_ensemble_stack")
         if not os.path.isdir(self.path):
             os.mkdir(self.path)
         

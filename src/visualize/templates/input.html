@@ -70,6 +70,20 @@
         })
       });
 
+      $("#recommend-ensemble").click(function(){
+        console.log("Getting recommendations");
+        $("#results").empty().text("Getting recommendations")
+        $.ajax({
+          url:"http://localhost:8080/recommend_ensemble",
+          data:{"abstract":$("#abstract").val(), "keywords":$("#auto").val()}
+        }).done(function(data){
+          $("#results").html(data);
+        }).fail(function() {
+          console.error( "Server error" );
+          $("#results").empty().text("Server error, please try again later")
+        })
+      });
+
       $("#clear").click(function(){
         $("#auto").val("");
         $("#abstract").val("");
@@ -82,14 +96,13 @@
   <body>
     <div class="input-div">
       {% if modelType == "Ensemble" %}
-        <input class="input" multiple placeholder="Tags" id="auto"/>
+        <input class="input" style="margin-bottom: 1em;" multiple placeholder="Tags" id="auto"/>
         <textarea class="input" id="abstract" rows="4" placeholder="Please insert your abstract here"/>
         <div class="button-div">
           <button class="button-style" type="button" id="recommend-ensemble">Recommend</button>
           <button class="button-style" type="button" id="clear">Clear</button>
         </div>
-      {% endif %}
-      {% if modelType =="Abstracts" %}
+      {% elif modelType =="Abstracts" %}
         <textarea class="input" id="abstract" rows="4" placeholder="Please insert your abstract here"/>
         <div class="button-div">
           <button class="button-style" type="button" id="recommend-abstract">Recommend</button>

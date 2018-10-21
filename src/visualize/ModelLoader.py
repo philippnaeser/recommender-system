@@ -17,6 +17,8 @@ sys.path.insert(0, os.path.join("..", "model", "model_keywords_tfidf_union"))
 from KeywordsUnionAbstractsModel import KeywordsUnionAbstractsModel
 sys.path.insert(0, os.path.join("..", "model", "model_cnn2"))
 from CNNAbstractsModel import CNNAbstractsModel
+sys.path.insert(0, os.path.join("..", "model", "model_ensemble_stack"))
+from EnsembleStackModel import EnsembleStackModel
 
 
 class ModelLoader():
@@ -60,6 +62,26 @@ class ModelLoader():
         self.model_keyword = KeywordsUnionAbstractsModel()
         self.model_keyword._load_model("small")
         self.models.append("Keywords_TfIdf")
+        ensemble_tfidf = TfIdfUnionAbstractsModel(ngram_range=(1,4), max_features=1000000, recs=100)
+        ensemble_tfidf.train(data=self.data_abstracts, data_name="small")
+        ensemble_cnn = CNNAbstractsModel(net_name="CNN2-100f-2fc-0.0005decay", recs=100)
+        ensemble_keyword = KeywordsUnionAbstractsModel(recs=100)
+        ensemble_keyword._load_model("small")
+        self.model_ensemble = EnsembleStackModel(
+            models=[
+                    ensemble_tfidf
+                    ,ensemble_cnn
+                    ,ensemble_keyword
+            ],
+            is_abstract=[
+                    True
+                    ,True
+                    ,False
+            ],
+            max_recs_models=100
+        )
+        self.model_ensemble._load_model("small")
+        self.models.append("Ensemble")
         #We need to get series names, not scigraph links
         #d = DataLoader()
         #d.papers(["2013","2014","2015"]).conferences().conferenceseries()
@@ -99,11 +121,17 @@ class ModelLoader():
             return self.getSeriesNames(rec)
         print("Model not found, please select a different model")
         return False
+    
+    def query_ensemble(self, abstract, keywords):
+        print("querying ensemble model")
+        keys = self.getKeywordIDs(keywords)
+        rec = self.model_ensemble.query_single(abstract, keys)
+        return self.getSeriesNames(rec)
 
     def autocomplete(self, modelName, data):
         if modelName == "Authors":
             return self.model_authors.get_author_names(term=data)
-        if modelName == "Keywords_TfIdf":
+        if modelName == "Keywords_TfIdf" or modelName=="Ensemble":
             tags = pd.Series(self.data_tags["keyword_label"].unique())
         
             tags = tags[tags.str.lower().str.startswith(data.lower())][:10]
@@ -150,6 +178,5 @@ class ModelLoader():
                 tmp = self.data_tags[self.data_tags.keyword_label == d].iloc[0].keyword
                 tmp = tmp.replace("<http://scigraph.springernature.com/things/product-market-codes/","")
                 tmp = tmp[0:-1]
-                ids += tmp + " "
-        print(ids)
+                ids += tmp + " "        
         return ids
