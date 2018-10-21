@@ -40,7 +40,7 @@ class ModelLoader():
         self.model_authors.train(self.data_authors)
         self.models.append("Authors")
         d = DataLoader()
-        d.papers(["2013","2014","2015"]).conferences().conferenceseries().keywords()
+        d.papers(["2013","2014","2015", "2016"]).conferences().conferenceseries().keywords()
         self.data_tags = d.data.loc[:, ["keyword", "keyword_label"]]
         #d = DataLoader()
         #d.training_data_for_abstracts("small")
@@ -105,7 +105,10 @@ class ModelLoader():
     def query(self,modelName, data):
         print("querying model: " + modelName)
         if modelName=="Authors":
-            rec = self.model_authors.query_single(data)
+            names = list()
+            for d in data:
+                names.append(d.lower())
+            rec = self.model_authors.query_single(names)
             return self.addDummyConfidence(rec)
         if modelName=="nTfIdf_concat":
             rec = self.model_tfidf_union.query_single(data)
