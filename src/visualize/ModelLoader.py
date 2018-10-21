@@ -139,7 +139,7 @@ class ModelLoader():
         additional = list()
         for i,conf in enumerate(recommendation[0][0]):
             conferenceseries.append(self.data[self.data.conferenceseries==conf].iloc[0]["conferenceseries_name"])
-            confidence.append(recommendation[1][0][i])
+            confidence.append(round(recommendation[1][0][i], 2))
             additional.append(self.addWikiCFP(conf))
         return [conferenceseries, confidence, additional]
 
