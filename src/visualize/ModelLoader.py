@@ -158,7 +158,8 @@ class ModelLoader():
         if conferenceseries in self.wikicfp:
             additional = self.wikicfp[conferenceseries]
             # Cut the description (did not work directly in a template)
-            additional['Description'] = additional['Description'][:400]
+            if additional['Description'] is not None:
+                additional['Description'] = additional['Description'][:400]
             return additional
         else: 
             return None
