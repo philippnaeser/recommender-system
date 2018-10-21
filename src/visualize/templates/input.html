@@ -47,7 +47,7 @@
         $("#results").empty().text("Getting recommendations")
         $.ajax({
           url:"http://localhost:8080/recommend_auto",
-          data:{"data":$("#auto").val(), "model":$("#models").val()}
+          data:{"data":$("#auto").val().toLowerCase(), "model":$("#models").val()}
         }).done(function(data){
           $("#results").html(data);
         }).fail(function() {
