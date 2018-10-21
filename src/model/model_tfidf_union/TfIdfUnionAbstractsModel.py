@@ -42,7 +42,7 @@ class TfIdfUnionAbstractsModel(AbstractModel):
                 "{}"
         ])
         
-        self.path = os.path.join("..","..","..","data","processed","model_tfidf_union")
+        self.path = os.path.join(os.path.dirname(__file__), "..","..","..","data","processed","model_tfidf_union")
         if not os.path.isdir(self.path):
             os.mkdir(self.path)
         

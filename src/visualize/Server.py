@@ -33,7 +33,7 @@ def setModel():
     print(modelName)
     if modelName=="Authors":
         modelType = "Authors"
-    elif modelName=="Tags":
+    elif modelName=="Keywords_TfIdf":
         modelType = "Tags"
     else:
         modelType = "Abstracts"

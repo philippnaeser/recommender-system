@@ -31,7 +31,7 @@ class Doc2VecUnionAbstractsModel(AbstractModel):
                 "{}"
         ])
     
-        self.path = os.path.join("..","..","..","data","processed","model_doc2vec_union")
+        self.path = os.path.join(os.path.dirname(__file__), "..","..","..","data","processed","model_doc2vec_union")
         if not os.path.isdir(self.path):
             os.mkdir(self.path)
         
@@ -109,9 +109,9 @@ class Doc2VecUnionAbstractsModel(AbstractModel):
                 data = data.groupby("conferenceseries").sum().reset_index()
             self.data = data
             self._save_model_x(data_name)
-        else:
-           if len(self.data) != len(data):
-               raise ValueError("Mismatch vs. persistent training data size: Loaded: {} <-> Given: {}".format(len(self.data),len(data)))
+        #else:
+           #if len(self.data) != len(data):
+               #raise ValueError("Mismatch vs. persistent training data size: Loaded: {} <-> Given: {}".format(len(self.data),len(data)))
 
         if not self._load_model_embeddings(data_name):
             print("Embeddings not persistent yet. Creating now.")
