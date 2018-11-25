@@ -70,7 +70,7 @@ class WikiCFPSearcher():
                 
                 if confID is not None:
                     info = self._get_info(confID)
-                    if self._check_period(info["Start Date"]):
+                    if self._check_period(info["Submission Deadline"]):
                         self.wikicfp_data[sg_conf] = info
     
     ##########################################
@@ -167,7 +167,7 @@ class WikiCFPSearcher():
         return index
     
     ##########################################
-    def _check_period(self, start_date):
+    def _check_period(self, submission_deadline):
         """
         Verifies whether the starting date of a conference is equal or bigger
         than the threshold date.
@@ -180,10 +180,10 @@ class WikiCFPSearcher():
                     chosen thresold date
                     False, otherwise.
         """
-        if start_date is None:
+        if submission_deadline is None:
             return False
         else:
-            return start_date >= self.threshold_date
+            return submission_deadline >= self.threshold_date
     
     ##########################################
     def _save_wikicfp_data(self):
